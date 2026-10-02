@@ -1,0 +1,100 @@
+key,comment.id,comment.author,comment.body,comment.created,comment.updated
+ROL-555,12691823,11737828,"
+I was unable to reproduce this at all on my Windows development box running the latest RELEASE_1_0_BRANCH and with patches for ROL-554, Tomcat 5.0.28, Sun JDK 1.4.2_06.
+
+I WAS, however, able to reproduce this on my Linux staging box running RedHat ES3, Sun JDK 1.4.2_05, Tomcat 5.0.28.
+
+I am still looking into it further.",2004-12-17 18:44:19,2004-12-17 18:44:19
+ROL-555,12691775,11737828,"My own problem turned out to be misconfiguration on my Linux box.  I had forgotten to put URIEncoding=""UTF-8"" in the HTTP Connector configuration.  After correcting this I am now UNABLE to reproduce it.  I've suggested Tore check the same.
+
+
+",2004-12-17 18:53:25,2004-12-17 18:53:25
+ROL-555,12691947,bcd10105,I did the same as Anil and it solved my problem. Thanks again Anil! ,2004-12-17 20:03:55,2004-12-17 20:03:55
+ROL-555,12691923,bcd10105,"This was not a bug but a Tomcat configuration problem. 
+
+By adding the URIEncoding=""UTF-8"" attribute in the HTTP Connector configuration, the problem disappeared.",2004-12-18 09:48:05,2004-12-18 09:48:05
+ROL-555,12691886,11737828,"This was due to a configuration problem on the user's site, which we found and corrected.  It was not reproducible if properly configured.  The reporter confirmed this in the previous comment.",2005-01-07 02:51:10,2005-01-07 02:51:10
+AXISCPP-420,59133,9d7410ed,Now the problem is solved.It would have been solved by the solution to  AXISCPP-430  ,2005-02-14 20:04:22,2005-02-14 20:04:22
+AXISCPP-420,59134,9d7410ed,The bug is fixed.,2005-02-14 20:05:08,2005-02-14 20:05:08
+AMQ-171,12936667,17dd2494,Fixed.,2005-02-16 00:20:10,2005-02-16 00:20:10
+XALANC-461,60013,bfab1c43,testcase attached,2005-03-02 12:04:58,2005-03-02 12:04:58
+XALANC-461,60026,9323dab8,This is a duplicate of XALANC-445.,2005-03-02 15:50:56,2005-03-02 15:50:56
+EWS-4,60101,5ff87f30,"Patch to solve the issue. Can someone review and apply it?
+
+Ashutosh",2005-03-03 19:00:06,2005-03-03 19:00:06
+EWS-4,60112,b401ad11,The patch by Ashutosh Shahi is applied ,2005-03-03 22:01:15,2005-03-03 22:01:15
+XMLBEANS-96,60802,97e91f10,"This is fixed in V2. The case has been automated for regession. 
+misc.detailed.JiraRegression50_100Test.test_jira_xmlbeans96",2005-03-15 09:22:54,2005-03-15 09:22:54
+XMLBEANS-96,60803,97e91f10,"Unit Test Passes in V2, closing",2005-03-15 09:23:32,2005-03-15 09:23:32
+BEEHIVE-427,60604,ebdf2539,pageflows to repro the problem.,2005-03-11 04:11:07,2005-03-11 04:11:07
+BEEHIVE-427,60606,653f8212,Interesting one...,2005-03-11 05:31:26,2005-03-11 05:31:26
+BEEHIVE-427,62776,653f8212,"I misunderstood this the first time I looked at it (well, maybe I'm still misunderstanding :)).  This seems like it's working correctly to me.  Controller.jpf *isn't* getting any sort of automatic reference to the shared flow.  The nested page flow is passing back a form bean, and that form bean happens to be an instance of a static inner class of the shared flow, but that's fine.  It's the same as using any other static inner class.
+
+If I'm missing the point of this, feel free to reopen.",2005-04-14 08:09:46,2005-04-14 08:09:46
+BEEHIVE-427,64940,ebdf2539,Verified as not an issue.  See previous comment by Rich.,2005-05-11 09:09:11,2005-05-11 09:09:11
+BEEHIVE-288,59050,2ed5279e,"In case this is helpful while trying to resolve the issue, here are some things that I have noticed: if the name and the path are the same, then the duplicate is ignored; if the paths differ then you get errors.
+
+---
+    @Jpf.Action(
+        forwards = {
+            @Jpf.Forward(
+                name = ""pg1"",
+                path = ""Pg1.jsp""),
+            @Jpf.Forward(
+                name = ""pg1"",
+                path = ""Pg1.jsp"")
+        })
+    protected Forward page1()
+        {
+        return new Forward(""pg1"");
+        }
+--- compiles fine
+
+--- 
+    @Jpf.Action(
+        forwards = {
+            @Jpf.Forward(
+                name = ""pg1"",
+                path = ""Pg1.jsp""),
+            @Jpf.Forward(
+                name = ""pg1"",
+                path = ""Pg2.jsp"")
+        })
+    protected Forward page1()
+        {
+        return new Forward(""pg1"");
+        }
+--- results in ...
+      [apt] Compiling 11 source files to /home/jjohnson/projects/.../webapp/WEB-INF/classes
+      [apt] /home/jjohnson/projects/.../webapp/WEB-INF/src/admin/Controller.java:102: Duplicate Forward tag with name=""pg1"".
+      [apt]     protected Forward page1()
+      [apt]                       ^
+      [apt] /home/jjohnson/projects/.../webapp/WEB-INF/src/admin/Controller.java:102: Duplicate Forward tag with name=""pg1"".
+      [apt]     protected Forward page1()
+      [apt]                       ^
+      [apt] 2 errors
+---
+
+- jeremiah",2005-02-12 08:14:56,2005-02-12 08:14:56
+BEEHIVE-288,59051,653f8212,"Right, the problem is with the implementation of Sun's Mirror APIs within apt (the annotation processing tool).  Because it's not always the case that someAnnotation.equals(anotherAnnotation), where someAnnotation and anotherAnnotation are actually the *same*, just retrieved different ways... I have a workaround that compares annotations by recursively comparing all their attributes.  So I can't distinguish between the two totally-duplicated annotations.
+
+I think my action on this will be to file a bug with Sun, but I first need to check if this was fixed in the latest JDK update.",2005-02-12 08:32:43,2005-02-12 08:32:43
+BEEHIVE-288,59485,653f8212,"Fixed with revision 154639.  This was actually due to a bug in Sun's Mirror implementation (the same annotation retrieved in different ways does not equal itself), but I found a workaround.",2005-02-21 16:55:19,2005-02-21 16:55:19
+BEEHIVE-288,59872,ebdf2539,Please verify.,2005-03-01 04:08:14,2005-03-01 04:08:14
+BEEHIVE-288,65787,ebdf2539,Please verify.,2005-05-20 07:39:20,2005-05-20 07:39:20
+BEEHIVE-288,65904,6843410f,Verified at rev171061. It now generates compiler error for both cases.,2005-05-21 14:54:01,2005-05-21 14:54:01
+JS1-511,37884,43c263a7,Fixes applied,2004-08-28 21:31:30,2004-08-28 21:31:30
+XALANC-524,66875,658e9ff4,"My apologies for opening this issue.  I was thinking that the 'clone'
+feature of JIRA would allow me to file an identical issue against
+XalanJ.
+
+This issue con be closed.",2005-06-03 03:02:57,2005-06-03 03:02:57
+XMLBEANS-102,59053,90b205b8,fixed with revision 153473,2005-02-12 10:02:41,2005-02-12 10:02:41
+XMLBEANS-102,63242,97e91f10,was able to repro this on rev # 161822,2005-04-20 08:48:24,2005-04-20 08:48:24
+XMLBEANS-102,63728,7c545b21,"Give it one more try, using File.getCanonicalPath() to detect this situation. SVN revision 164687.",2005-04-26 10:33:38,2005-04-26 10:33:38
+XMLBEANS-102,12313184,a0177c34,"Verified:
+
+Downloaded attached schema, netui-config.xsd, and invoked
+scomp.cmd netui-config.xsd -d .\ -out netui-config.jar
+
+Result:

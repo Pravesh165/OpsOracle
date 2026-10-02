@@ -1,0 +1,100 @@
+id,key,id_1,author,created,field,fieldtype,from,fromString,to,toString
+13322636,BEAM-10705,19154171,b20375d7,2020-09-14 20:15:48,RemoteIssueLink,jira,212540,"This issue links to ""GitHub Pull Request #12811 (Web Link)""",212540,"This issue links to ""GitHub Pull Request #12811 (Web Link)"""
+12757250,SQOOP-1781,14416397,8208a620,2015-03-16 19:18:18,Attachment,jira,12703176,SQOOP-1781.patch,,
+12767246,PHOENIX-1580,14446744,dd305e66,2015-04-02 20:50:53,Comment,jira,"So I recommend you implement explain like this instead:
++    @Override
++    public void explain(List<String> planSteps) {
++        for (QueryPlan plan : plans) {
++            List<String> planSteps = plan.getExplainPlan().getPlanSteps();
++            steps.addAll(planSteps);   
++        } 
++    }
+
+If I do this, I need to change ResultIterators interface to throw SQLException for ""public void explain(List<String> planSteps);"". Do you want to change the Interface?",,,
+12913776,FLINK-3034,15470328,b20375d7,2016-06-22 09:47:05,RemoteIssueLink,jira,43095,"This issue links to ""GitHub Pull Request #1813 (Web Link)""",43095,"This issue links to ""GitHub Pull Request #1813 (Web Link)"""
+13213484,SPARK-26817,17444311,b20375d7,2019-02-10 17:30:20,RemoteIssueLink,jira,145292,"This issue links to ""GitHub Pull Request #23727 (Web Link)""",145292,"This issue links to ""GitHub Pull Request #23727 (Web Link)"""
+13098794,CARBONDATA-1438,16247449,b20375d7,2017-09-04 19:11:28,WorklogId,jira,51652,51652,,
+13098794,CARBONDATA-1438,16247449,b20375d7,2017-09-04 19:11:28,timespent,jira,3600,3600,4200,4200
+13092558,BEAM-2732,16734859,b20375d7,2018-04-02 23:36:35,RemoteIssueLink,jira,101911,"This issue links to ""GitHub Pull Request #4387 (Web Link)""",101911,"This issue links to ""GitHub Pull Request #4387 (Web Link)"""
+13132904,BEAM-3516,16743482,b20375d7,2018-04-05 22:16:48,WorklogId,jira,88223,88223,,
+13132904,BEAM-3516,16743482,b20375d7,2018-04-05 22:16:48,timespent,jira,4800,4800,5400,5400
+13162415,BEAM-4414,16877577,b20375d7,2018-06-07 15:59:20,WorklogId,jira,109695,109695,,
+13162415,BEAM-4414,16877577,b20375d7,2018-06-07 15:59:20,timespent,jira,1200,1200,1800,1800
+13162415,BEAM-4414,17736417,b9cd9cba,2019-04-30 19:02:32,Workflow,jira,13467633,Classic default workflow + FixVersion required + Editable Closed Issues,13585158,Classic default workflow + FixVersion required + Editable Closed Issues + Triage Needed
+13283292,GOBBLIN-1040,18651950,b20375d7,2020-03-02 03:42:48,RemoteIssueLink,jira,189328,"This issue links to ""GitHub Pull Request #2900 (Web Link)""",189328,"This issue links to ""GitHub Pull Request #2900 (Web Link)"""
+13107954,CARBONDATA-1548,19355168,b20375d7,2020-12-17 15:34:58,WorklogId,jira,525576,525576,,
+13107954,CARBONDATA-1548,19355168,b20375d7,2020-12-17 15:34:58,timespent,jira,21600,21600,22200,22200
+13375573,IGNITE-14664,19749749,b20375d7,2021-05-10 23:17:08,WorklogId,jira,594248,594248,,
+13375573,IGNITE-14664,19749749,b20375d7,2021-05-10 23:17:08,timespent,jira,2400,2400,3000,3000
+13394625,BEAM-12740,19984994,b20375d7,2021-08-16 14:59:01,RemoteIssueLink,jira,250677,"This issue links to ""GitHub Pull Request #15301 (Web Link)""",250677,"This issue links to ""GitHub Pull Request #15301 (Web Link)"""
+13415482,JAMES-3680,20300427,b20375d7,2021-12-29 05:46:08,WorklogId,jira,701746,701746,,
+13415482,JAMES-3680,20300427,b20375d7,2021-12-29 05:46:08,timespent,jira,93000,93000,93600,93600
+12380200,DERBY-3127,12537684,8f727780,2007-10-15 21:30:55,resolution,jira,,,6,Invalid
+12380200,DERBY-3127,12537684,8f727780,2007-10-15 21:30:55,status,jira,1,Open,5,Resolved
+12369355,DERBY-2646,12493535,6cc28a2a,2007-05-15 09:08:56,Component,jira,,,11407,JDBC
+12369355,DERBY-2646,12493535,6cc28a2a,2007-05-15 09:08:56,Urgency,custom,,,,Urgent
+12369355,DERBY-2646,12493535,6cc28a2a,2007-05-15 09:08:56,Version,jira,,,12310800,10.3.0.0
+12369355,DERBY-2646,12496856,6cc28a2a,2007-05-25 00:16:34,Attachment,jira,,,12358168,derby-2646-02a-clob-reorg.diff
+12369355,DERBY-2646,12496856,6cc28a2a,2007-05-25 00:16:34,Attachment,jira,,,12358167,derby-2646-02a-clob-reorg.diff
+12403136,HARMONY-5959,12661305,93ad4f0c,2008-12-17 10:53:39,status,jira,1,Open,3,In Progress
+12342619,MATH-57,12397733,ce6afcad,2006-05-16 13:46:10,Component,jira,12311125,Math,,
+12342619,MATH-57,12397733,ce6afcad,2006-05-16 13:46:10,Key,jira,,COM-2467,,MATH-57
+12342619,MATH-57,12397733,ce6afcad,2006-05-16 13:46:10,Project,jira,12310458,Commons,12310485,Commons Math
+12342619,MATH-57,12397733,ce6afcad,2006-05-16 13:46:10,Version,jira,12311651,1.0 Final,,
+12342619,MATH-57,12397733,ce6afcad,2006-05-16 13:46:10,assignee,jira,commons-dev@jakarta.apache.org,Jakarta Commons Developers Mailing List,,
+12473369,SLING-1731,13655799,22c0bc4e,2013-02-22 13:35:31,Workflow,jira,12764033,"Copy of no-reopen-closed,doc-test-required",12767328,"no-reopen-closed,doc-test-required"
+12497132,DERBY-4990,13036528,a7a7940e,2011-01-31 20:45:51,assignee,jira,,,chaase3,Kim Haase
+12536236,HIVE-2676,13327447,1e6d0be2,2012-04-03 04:13:51,Fix Version,jira,,,12317742,0.9.0
+12429170,CHUKWA-338,12732618,0265854c,2009-06-30 10:42:51,Link,jira,,,CHUKWA-339,This issue depends on CHUKWA-339
+12502282,STANBOL-120,13347468,bd4d55a8,2012-05-09 15:47:53,status,jira,5,Resolved,6,Closed
+12671330,FELIX-4256,18167267,22c0bc4e,2019-09-20 13:19:50,Workflow,jira,12818445,classic default workflow,13630485,Classic - editable closed
+12656658,AIRAVATA-880,13860354,4686c6ea,2013-09-22 22:25:03,Attachment,jira,12600443,Airavata-880_1.patch,,
+12421259,ROL-1659,12696433,ce6afcad,2009-03-28 07:38:24,ProjectImport,jira,,,1238222296558,Fri Mar 27 23:38:16 PDT 2009
+12713632,UIMA-3818,14068070,b903fd3d,2014-05-13 07:43:12,description,jira,,"The UTF8 character '𝒪' can not be deserialized by `XmiCasDeserializer.deserialize'.
+
+Here is a way to reproduce this:
+
+{code:java}
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.uima.cas.impl.XmiCasDeserializer;
+import org.apache.uima.cas.impl.XmiCasSerializer;
+import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.jcas.JCas;
+
+public class Test {
+    public static void main(String[] args) throws Exception {
+        JCas jCas = JCasFactory.createJCas();
+        jCas.setDocumentText(""𝒪"");
+        File file = new File(""/tmp/test.xmi"");
+        OutputStream outputStream = new FileOutputStream(file);
+        XmiCasSerializer.serialize(jCas.getCas(), outputStream);
+
+        InputStream inputStream = new FileInputStream(file);
+        XmiCasDeserializer.deserialize(inputStream, jCas.getCas());
+    }
+}
+{code}
+
+Please tell me if you need more information.",,"The UTF8 character '𝒪' can not be deserialized by `XmiCasDeserializer.deserialize'.
+
+Here is a way to reproduce this:
+
+{code:java}
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.apache.uima.cas.impl.XmiCasDeserializer;
+import org.apache.uima.cas.impl.XmiCasSerializer;
+import org.apache.uima.fit.factory.JCasFactory;
+import org.apache.uima.jcas.JCas;
+
+public class Test {
+    public static void main(String[] args) throws Exception {

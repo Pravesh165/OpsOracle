@@ -1,0 +1,123 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opsmind"
+version = "0.1.0"
+description = "OpsMind - Autonomous Incident-to-Insight Assistant with Full Jira Integration"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "OpsMind Team"},
+]
+keywords = ["incident-management", "postmortem", "devops", "sre", "jira"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "google-adk-agents",
+    "google-genai",
+    "pandas>=1.5.0",
+    "python-dotenv>=0.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=22.0",
+    "flake8>=4.0",
+    "mypy>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/opsmind"
+Repository = "https://github.com/your-org/opsmind.git"
+Documentation = "https://your-org.github.io/opsmind/"
+"Bug Reports" = "https://github.com/your-org/opsmind/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["opsmind*"]
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = ["--verbose"]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["opsmind"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+# Pylint configuration
+[tool.pylint.main]
+py-version = "3.8"
+load-plugins = [
+    "pylint.extensions.docparams",
+    "pylint.extensions.docstyle",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-statements",
+    "fixme",
+    "line-too-long",  # handled by black
+    "import-error",   # mypy handles this
+]
+
+[tool.pylint.format]
+max-line-length = 88
+
+# Bandit security linter configuration
+[tool.bandit]
+exclude_dirs = ["tests", "venv", "virtualenv"]
+skips = ["B101"]  # Skip assert_used test 

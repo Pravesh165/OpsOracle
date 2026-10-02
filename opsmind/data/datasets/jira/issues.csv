@@ -1,0 +1,100 @@
+id,key,summary,resolution.id,resolution.description,resolution.name,priority.id,priority.name,labels,assignee,status.id,status.description,status.name,statusCategory.id,statusCategory.key,statusCategory.colorName,statusCategory.name,customfield_12310921,creator,subtasks,reporter,votes.votes,issuetype.id,issuetype.description,issuetype.name,issuetype.subtask,project.id,project.key,project.name,projectCategory.id,projectCategory.description,projectCategory.name,resolutiondate,watches.watchCount,created,updated,description
+12451174,WW-712,Update config browser to work with the new syntax,1,A fix for this issue is checked into the tree and tested.,Fixed,4,Minor,[],632ec9dd,6,"The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",Closed,3,done,green,Done,,632ec9dd,[],632ec9dd,0,4,An improvement or enhancement to an existing feature or task.,Improvement,False,12311041,WW,Struts 2,10380,struts.apache.org,Struts Framework,2005-01-01 07:50:46,0,2005-01-01 07:47:50,2005-01-01 07:50:46,The config browser used Velocity calling the tags using the old syntax (single quoting literals). This should default to using the new syntax with a backward compatible option.
+29159,XALANC-446,XALAN_C 1.9 or current do not build on Fedora core 3,1,A fix for this issue is checked into the tree and tested.,Fixed,1,Blocker,[],,5,"A resolution has been taken, and it is awaiting verification by reporter. From here issues are either reopened, or are closed.",Resolved,3,done,green,Done,,4fc0930d,[],4fc0930d,0,1,A problem which impairs or prevents the functions of the product.,Bug,False,10582,XALANC,XalanC,11460,Xalan Related Projects,Xalan,2004-12-30 05:30:36,1,2004-12-25 22:50:30,2005-01-01 10:20:52,"Two types of errors:
+1- runConfigure and configure are not executable (I had to 'chmod -R a+x *configure' to start the compilation)
+
+2- Cannot compile the source: XPath/XPathEvaluator.cpp 
+because XPath/ElementPrefixResolverProxy.hpp contains an unimplemented copy constructor
+
+See below more details:
+
+
+g++ -O2 -DNDEBUG     -fno-elide-constructors -Wall -fPIC -DLINUX -D_REENTRANT -D XALAN_INMEM_MSG_LOADER -c -I/opt/local/xml-xalan/c/src -I/opt/local/xml-xalan/c/ include -I../../nls/include -I/opt/local/xerces-c-src_2_6_0/src/ -I/opt/local/xe rces-c-src_2_6_0/include/xercesc -I/opt/local/xerces-c-src_2_6_0/include/  -o .. /../obj/XPathEnvSupportDefault.o /opt/local/xml-xalan/c/src/xalanc/XPath/XPathEn vSupportDefault.cpp
+g++ -O2 -DNDEBUG     -fno-elide-constructors -Wall -fPIC -DLINUX -D_REENTRANT -D XALAN_INMEM_MSG_LOADER -c -I/opt/local/xml-xalan/c/src -I/opt/local/xml-xalan/c/ include -I../../nls/include -I/opt/local/xerces-c-src_2_6_0/src/ -I/opt/local/xe rces-c-src_2_6_0/include/xercesc -I/opt/local/xerces-c-src_2_6_0/include/  -o .. /../obj/XPathEvaluator.o /opt/local/xml-xalan/c/src/xalanc/XPath/XPathEvaluator. cpp
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp: In membe r function `xalanc_1_9::XObjectPtr xalanc_1_9::XPathEvaluator::evaluate(xalanc_1 _9::DOMSupport&, xalanc_1_9::XalanNode*, const xalanc_1_9::XalanDOMChar*, const xalanc_1_9::XalanElement*)':
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp:89: error : `xalanc_1_9::ElementPrefixResolverProxy::ElementPrefixResolverProxy(const xala nc_1_9::ElementPrefixResolverProxy&)' is private
+/opt/local/xml-xalan/c/src/xalanc/XPath/XPathEvaluator.cpp:279: error: within th is context
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp: In membe r function `xalanc_1_9::XObjectPtr xalanc_1_9::XPathEvaluator::evaluate(xalanc_1 _9::DOMSupport&, xalanc_1_9::XalanNode*, const xalanc_1_9::XPath&, const xalanc_ 1_9::XalanElement*)':
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp:89: error : `xalanc_1_9::ElementPrefixResolverProxy::ElementPrefixResolverProxy(const xala nc_1_9::ElementPrefixResolverProxy&)' is private
+/opt/local/xml-xalan/c/src/xalanc/XPath/XPathEvaluator.cpp:299: error: within th is context
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp: In membe r function `xalanc_1_9::XPath* xalanc_1_9::XPathEvaluator::createXPath(const xal anc_1_9::XalanDOMChar*)':
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp:89: error : `xalanc_1_9::ElementPrefixResolverProxy::ElementPrefixResolverProxy(const xala nc_1_9::ElementPrefixResolverProxy&)' is private
+/opt/local/xml-xalan/c/src/xalanc/XPath/XPathEvaluator.cpp:348: error: within th is context
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp: In membe r function `xalanc_1_9::XPath* xalanc_1_9::XPathEvaluator::createXPath(const xal anc_1_9::XalanDOMChar*, xalanc_1_9::DOMSupport&, const xalanc_1_9::XalanElement* )':
+/opt/local/xml-xalan/c/src/xalanc/XPath/ElementPrefixResolverProxy.hpp:89: error : `xalanc_1_9::ElementPrefixResolverProxy::ElementPrefixResolverProxy(const xala nc_1_9::ElementPrefixResolverProxy&)' is private
+/opt/local/xml-xalan/c/src/xalanc/XPath/XPathEvaluator.cpp:361: error: within th is context
+gmake[1]: *** [../../obj/XPathEvaluator.o] Error 1
+gmake[1]: Leaving directory `/opt/local/xml-xalan/c/src/xalanc'
+gmake: *** [all] Error 2
+"
+12420130,ROL-587,"Problem with ADD new post, and DELETE post.",5,"All attempts at reproducing this issue failed, or not enough information was available to reproduce the issue. Reading the code produces no clues as to why this behavior would occur. If more information appears later, please reopen the issue.",Cannot Reproduce,2,Critical,[],4d4054ac,6,"The issue is considered finished, the resolution is correct. Issues which are not closed can be reopened.",Closed,3,done,green,Done,,110153ae,[],110153ae,0,1,A problem which impairs or prevents the functions of the product.,Bug,False,12310906,ROL,Apache Roller,10331,,Roller,2005-01-02 15:21:00,0,2005-01-01 13:52:46,2005-01-02 15:21:00,"When trying to add new post, I was getting next error page:
+
+500 Servlet Exception
+
+java.lang.NullPointerException
+	at org.roller.presentation.weblog.actions.WeblogEntryFormAction.reindexEntry(WeblogEntryFormAction.java:807)
+	at org.roller.presentation.weblog.actions.WeblogEntryFormAction.remove(WeblogEntryFormAction.java:419)
+	at sun.reflect.GeneratedMethodAccessor586.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25)
+	at java.lang.reflect.Method.invoke(Method.java:585)
+	at org.apache.struts.actions.DispatchAction.dispatchMethod(DispatchAction.java:276)
+	at org.apache.struts.actions.DispatchAction.execute(DispatchAction.java:196)
+	at org.apache.struts.action.RequestProcessor.processActionPerform(RequestProcessor.java:421)
+	at org.apache.struts.action.RequestProcessor.process(RequestProcessor.java:226)
+	at org.apache.struts.action.ActionServlet.process(ActionServlet.java:1164)
+	at org.apache.struts.action.ActionServlet.doPost(ActionServlet.java:415)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:152)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:90)
+	at com.caucho.server.dispatch.ServletFilterChain.doFilter(ServletFilterChain.java:99)
+	at org.roller.presentation.filters.BreadCrumbFilter.doFilter(BreadCrumbFilter.java:70)
+	at com.caucho.server.dispatch.FilterFilterChain.doFilter(FilterFilterChain.java:70)
+	at org.roller.presentation.filters.RequestFilter.doFilter(RequestFilter.java:173)
+	at com.caucho.server.dispatch.FilterFilterChain.doFilter(FilterFilterChain.java:70)
+	at org.roller.presentation.filters.CloseSessionFilter.doFilter(CloseSessionFilter.java:51)
+	at com.caucho.server.dispatch.FilterFilterChain.doFilter(FilterFilterChain.java:70)
+	at com.caucho.server.security.SecurityFilterChain.doFilter(SecurityFilterChain.java:117)
+	at com.caucho.server.webapp.WebAppFilterChain.doFilter(WebAppFilterChain.java:163)
+	at com.caucho.server.dispatch.ServletInvocation.service(ServletInvocation.java:207)
+	at com.caucho.server.http.HttpRequest.handleRequest(HttpRequest.java:249)
+	at com.caucho.server.port.TcpConnection.run(TcpConnection.java:327)
+	at com.caucho.util.ThreadPool.runTasks(ThreadPool.java:450)
+	at com.caucho.util.ThreadPool.run(ThreadPool.java:394)
+	at java.lang.Thread.run(Thread.java:595)
+
+I've tried to post it 3 times, and always was getting this error. Then I logged out, log in, and saw that 3 new posts appeared. I've tried to delete one of them, and was getting the same error as above, however, post didn't disappear.
+
+Please help with this. 
+
+Thank you."
+29222,AXIS-1741,LogHandler can only work in GlobalConfiguration in client-config.wsdd,,,,3,Major,[],,1,The issue is open and ready for the assignee to start work on it.,Open,2,new,blue-gray,To Do,,be1c6b12,[],be1c6b12,0,1,A problem which impairs or prevents the functions of the product.,Bug,False,10460,AXIS,Axis,10401,Axis and Axis2 related projects,Axis,,0,2005-01-02 19:13:37,2005-01-02 19:35:36,"org.apache.axis.handlers.LogHandler in requestFlow/responseFlow can only work within tag globalConfiguration, it can not work when we put it in a specific service item.
+"
+29233,AXIS-1745,Decoding of service is broken in org.apache.axis.transport.http.SimpleAxisWorker.java,,,,3,Major,[],,1,The issue is open and ready for the assignee to start work on it.,Open,2,new,blue-gray,To Do,,97843411,[],97843411,0,1,A problem which impairs or prevents the functions of the product.,Bug,False,10460,AXIS,Axis,10401,Axis and Axis2 related projects,Axis,,1,2005-01-03 03:34:52,2005-01-03 03:34:52,"The following code assumes a lot of things:
+
+               if (filePart.startsWith(""axis/services/"")) {
+                    String servicePart = filePart.substring(14);
+                    int separator = servicePart.indexOf('/');
+                    if (separator > -1) {
+                        msgContext.setProperty(""objectID"",
+                                       servicePart.substring(separator + 1));
+                        servicePart = servicePart.substring(0, separator);
+                    }
+                    msgContext.setTargetService(servicePart);
+                }
+
+If a service is deployed in a web application that is not named axis, things break.
+
+In addition, it seems that axis only uses the third path segment. java2wsdl with friends seem to use the last part of the path.
+
+Suggested patch:
+
+               int sepindex = filepart.indexOf('/');
+               String localPart = filepart.substring(sepindex+1); //without webapp name
+               if (localpart.startsWith(""services/"") {
+                  localPart = localpart.substring(9);
+               }
+               int separator = localPart.indexOf('/');
+               String servicePart = null;
+               if (separator > -1) {
+                   msgContext.setProperty(""objectID"",
+                      localPart.substring(separator + 1));
+                   servicePart = localPart.substring(0, sepindex);

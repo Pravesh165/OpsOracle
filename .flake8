@@ -1,0 +1,43 @@
+[flake8]
+max-line-length = 88
+extend-ignore = 
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # D100: Missing docstring in public module
+    D100,
+    # D101: Missing docstring in public class
+    D101,
+    # D102: Missing docstring in public method
+    D102,
+    # D103: Missing docstring in public function
+    D103,
+    # D104: Missing docstring in public package
+    D104,
+    # D105: Missing docstring in magic method
+    D105
+
+exclude = 
+    .git,
+    __pycache__,
+    .pytest_cache,
+    .mypy_cache,
+    build,
+    dist,
+    *.egg-info,
+    venv,
+    virtualenv,
+    .venv,
+    .env
+
+per-file-ignores =
+    # Tests don't need docstrings
+    tests/*: D100,D101,D102,D103,D104
+    # Examples don't need strict docstrings
+    examples/*: D100,D101,D102,D103,D104
+    # __init__.py files don't need docstrings
+    __init__.py: D104
+
+max-complexity = 10
+docstring-convention = google 
