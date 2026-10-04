@@ -10,6 +10,7 @@ from opsmind.config import logger
 from opsmind.data import load_incident_data, load_jira_data
 from opsmind.utils import safe_get
 from opsmind.tools.guardrail import with_guardrail
+from opsmind.retrieval import search as hybrid_search
 
 
 @with_guardrail
@@ -105,23 +106,43 @@ async def get_incident_context(
             tool_context.state["incident_memory"] = all_context
             logger.info("Loaded %s incidents and %s Jira items into memory", len(incident_context), len(jira_context))
 
-        # Enhanced context search based on query keywords
+        # Hybrid semantic + lexical search
         context = tool_context.state["incident_memory"]
         relevant_context = []
 
-        query_lower = query.lower()
-        query_keywords = query_lower.split()
+        hybrid_results = hybrid_search(query, k=15)
+        if hybrid_results:
+            # Map hybrid results back to context items by source_id
+            id_to_score = {r.source_id: r.similarity_score for r in hybrid_results}
+            for item in context:
+                item_id = str(
+                    item.get("id") or item.get("key") or item.get("number") or ""
+                )
+                if item_id in id_to_score:
+                    item_with_score = item.copy()
+                    item_with_score["relevance_score"] = id_to_score[item_id]
+                    item_with_score["similarity_score"] = id_to_score[item_id]
+                    relevant_context.append(item_with_score)
+            # Include any hybrid hits not already in context
+            existing_ids = {str(i.get("id") or i.get("key") or "") for i in relevant_context}
+            for r in hybrid_results:
+                if r.source_id not in existing_ids:
+                    entry = r.metadata.copy()
+                    entry["relevance_score"] = r.similarity_score
+                    entry["similarity_score"] = r.similarity_score
+                    entry["citation_id"] = r.citation_id
+                    relevant_context.append(entry)
+        else:
+            # Fallback: keyword scoring
+            query_keywords = query.lower().split()
+            for item in context:
+                item_text = str(item).lower()
+                matches = sum(1 for kw in query_keywords if kw in item_text)
+                if matches > 0:
+                    item_with_score = item.copy()
+                    item_with_score["relevance_score"] = matches
+                    relevant_context.append(item_with_score)
 
-        for item in context:
-            item_text = str(item).lower()
-            # Score relevance based on keyword matches
-            matches = sum(1 for keyword in query_keywords if keyword in item_text)
-            if matches > 0:
-                item_with_score = item.copy()
-                item_with_score["relevance_score"] = matches
-                relevant_context.append(item_with_score)
-
-        # Sort by relevance score and return top results
         relevant_context.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
 
         return {

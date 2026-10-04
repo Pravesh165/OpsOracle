@@ -258,23 +258,48 @@ class DataManager:
         try:
             if not self._running:
                 return {"status": "error", "message": "Manager not running"}
-            
+
+            # Try hybrid retrieval first
+            try:
+                from opsmind.retrieval import search as hybrid_search
+                hybrid_hits = hybrid_search(query, k=limit)
+                if hybrid_hits:
+                    context = [
+                        {
+                            **r.metadata,
+                            "relevance_score": r.similarity_score,
+                            "similarity_score": r.similarity_score,
+                            "citation_id": r.citation_id,
+                        }
+                        for r in hybrid_hits
+                    ]
+                    active_sources = [name for name, config in self.sources.items() if config.enabled]
+                    return {
+                        "status": "success",
+                        "context": context,
+                        "total_found": len(context),
+                        "active_sources": active_sources,
+                        "has_realtime": self.realtime_manager is not None,
+                        "context_size": len(self.context),
+                        "retrieval_mode": "hybrid",
+                    }
+            except Exception:
+                pass  # fall through to keyword
+
+            # Keyword fallback
             all_context = self.context.copy()
-            
-            # Add real-time context
+
             if self.realtime_manager:
-                realtime_context = self.realtime_manager.get_recent_context(limit=limit//2)
+                realtime_context = self.realtime_manager.get_recent_context(limit=limit // 2)
                 all_context.extend(realtime_context)
-            
-            # Score and filter
+
             query_lower = query.lower()
             keywords = query_lower.split()
-            
+
             relevant = []
             for item in all_context:
                 content = item.get('content', '')
                 text = f"{content} {str(item)}".lower()
-                
                 matches = sum(1 for keyword in keywords if keyword in text)
                 if matches > 0:
                     scored_item = item.copy()
@@ -282,17 +307,18 @@ class DataManager:
                     priority_boost = item.get('priority', 1)
                     scored_item["relevance_score"] = base_score * priority_boost
                     relevant.append(scored_item)
-            
+
             relevant.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
             active_sources = [name for name, config in self.sources.items() if config.enabled]
-            
+
             return {
                 "status": "success",
                 "context": relevant[:limit],
                 "total_found": len(relevant),
                 "active_sources": active_sources,
                 "has_realtime": self.realtime_manager is not None,
-                "context_size": len(all_context)
+                "context_size": len(all_context),
+                "retrieval_mode": "keyword",
             }
             
         except Exception as e:

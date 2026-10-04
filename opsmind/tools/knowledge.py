@@ -13,6 +13,7 @@ from opsmind.data.loader import (
 from opsmind.context import get_incident_context
 from opsmind.utils import safe_get
 from opsmind.tools.guardrail import with_guardrail
+from opsmind.retrieval import search as hybrid_search, RankedResult
 import pandas as pd
 
 
@@ -34,40 +35,38 @@ async def search_knowledge_base(
     """
     try:
         logger.info(f"Searching knowledge base for: {query}")
-        
-        # Simple search terms from query
-        search_terms = _extract_simple_terms(query)
-        
+
+        # --- Hybrid semantic + lexical retrieval ---
+        hybrid_hits = hybrid_search(query, k=limit)
+
+        if hybrid_hits:
+            incidents, jira_issues, jira_comments, jira_changelog = _partition_hybrid_hits(hybrid_hits)
+        else:
+            # Fallback: keyword search
+            search_terms = _extract_simple_terms(query)
+            incidents = _search_incidents_simple(search_terms, limit)
+            jira_issues = _search_jira_issues_simple(search_terms, limit)
+            jira_comments = _search_jira_comments_simple(search_terms, limit)
+            jira_changelog = _search_jira_changelog_simple(search_terms, limit)
+
         results = {
             "query": query,
-            "search_terms": search_terms,
-            "results": {},
-            "total_results": 0,
-            "search_timestamp": datetime.now().isoformat()
+            "search_terms": _extract_simple_terms(query),
+            "results": {
+                "incidents": incidents,
+                "jira_issues": jira_issues,
+                "jira_comments": jira_comments,
+                "jira_changelog": jira_changelog,
+            },
+            "total_results": len(incidents) + len(jira_issues) + len(jira_comments) + len(jira_changelog),
+            "search_timestamp": datetime.now().isoformat(),
+            "retrieval_mode": "hybrid" if hybrid_hits else "keyword",
         }
-        
-        # Search all data sources
-        incidents = _search_incidents_simple(search_terms, limit)
-        jira_issues = _search_jira_issues_simple(search_terms, limit)
-        jira_comments = _search_jira_comments_simple(search_terms, limit)
-        jira_changelog = _search_jira_changelog_simple(search_terms, limit)
-        
-        results["results"] = {
-            "incidents": incidents,
-            "jira_issues": jira_issues,
-            "jira_comments": jira_comments,
-            "jira_changelog": jira_changelog
-        }
-        
-        results["total_results"] = len(incidents) + len(jira_issues) + len(jira_comments) + len(jira_changelog)
-        
-        # Store results in context
+
         tool_context.state["last_knowledge_search"] = results
-        
-        # Generate simple summary
         results["summary"] = _generate_simple_summary(results)
-        
-        logger.info(f"Knowledge base search completed: {results['total_results']} total results")
+
+        logger.info(f"Knowledge base search completed: {results['total_results']} total results ({results['retrieval_mode']})")  # noqa: E501
         return results
         
     except Exception as e:
@@ -189,9 +188,11 @@ async def find_similar_issues(
                     "description": incident.get("description", ""),
                     "resolution": incident.get("resolution", ""),
                     "category": incident.get("category", ""),
-                    "priority": incident.get("priority", "")
+                    "priority": incident.get("priority", ""),
+                    "similarity_score": incident.get("similarity_score", 0.0),
+                    "citation_id": incident.get("citation_id", f"INC-{incident.get('number', '')}"),
                 })
-        
+
         # Process JIRA issues
         for issue in search_results["results"].get("jira_issues", []):
             if issue.get("status.name") in ["Resolved", "Closed", "Done"]:
@@ -202,11 +203,13 @@ async def find_similar_issues(
                     "description": issue.get("description", ""),
                     "resolution": issue.get("resolution.name", ""),
                     "status": issue.get("status.name", ""),
-                    "priority": issue.get("priority.name", "")
+                    "priority": issue.get("priority.name", ""),
+                    "similarity_score": issue.get("similarity_score", 0.0),
+                    "citation_id": issue.get("citation_id", f"JIRA-{issue.get('key', '')}"),
                 })
         
-        # Simple sort by resolution length (basic relevance)
-        similar_issues.sort(key=lambda x: len(str(x.get("resolution", ""))), reverse=True)
+        # Sort by similarity_score (semantic relevance) descending
+        similar_issues.sort(key=lambda x: x.get("similarity_score", 0.0), reverse=True)
         
         return {
             "query": issue_description,
@@ -270,6 +273,29 @@ async def get_historical_patterns(
 
 
 # === SIMPLIFIED HELPER FUNCTIONS ===
+
+
+def _partition_hybrid_hits(
+    hits: List["RankedResult"],
+) -> tuple:
+    """Split RankedResult list into (incidents, jira_issues, jira_comments, jira_changelog)."""
+    incidents, jira_issues, jira_comments, jira_changelog = [], [], [], []
+    for r in hits:
+        entry = r.metadata.copy()
+        entry["similarity_score"] = r.similarity_score
+        entry["citation_id"] = r.citation_id
+        src = r.source
+        if src == "incident":
+            incidents.append(entry)
+        elif src == "jira_issue":
+            jira_issues.append(entry)
+        elif src == "jira_comment":
+            jira_comments.append(entry)
+        elif src == "jira_changelog":
+            jira_changelog.append(entry)
+        else:
+            incidents.append(entry)  # unknown → treat as incident
+    return incidents, jira_issues, jira_comments, jira_changelog
 
 def _extract_simple_terms(query: str) -> List[str]:
     """Extract simple search terms from query"""
@@ -417,10 +443,12 @@ def _analyze_results_for_answer(question: str, search_results: Dict[str, Any]) -
                 "id": incident.get("number"),
                 "title": incident.get("short_description", ""),
                 "resolution": incident.get("resolution", ""),
-                "category": incident.get("category", "")
+                "category": incident.get("category", ""),
+                "similarity_score": incident.get("similarity_score", 0.0),
+                "citation_id": incident.get("citation_id", f"INC-{incident.get('number', '')}"),
             })
             confidence += 0.3
-    
+
     # Analyze JIRA issues (simplified)
     jira_issues = search_results["results"].get("jira_issues", [])
     for issue in jira_issues[:2]:  # Top 2 most relevant
@@ -430,10 +458,12 @@ def _analyze_results_for_answer(question: str, search_results: Dict[str, Any]) -
                 "id": issue.get("key"),
                 "title": issue.get("summary", ""),
                 "resolution": issue.get("resolution.name", ""),
-                "status": issue.get("status.name", "")
+                "status": issue.get("status.name", ""),
+                "similarity_score": issue.get("similarity_score", 0.0),
+                "citation_id": issue.get("citation_id", f"JIRA-{issue.get('key', '')}"),
             })
             confidence += 0.3
-    
+
     # Analyze comments (simplified)
     comments = search_results["results"].get("jira_comments", [])
     for comment in comments[:1]:  # Top 1 most relevant
@@ -443,7 +473,9 @@ def _analyze_results_for_answer(question: str, search_results: Dict[str, Any]) -
                 "type": "jira_comment",
                 "issue_key": comment.get("key", comment.get("issue", "")),
                 "author": comment.get("comment.author", comment.get("author", "")),
-                "content": body_text[:150] + "..." if len(body_text) > 150 else body_text
+                "content": body_text[:150] + "..." if len(body_text) > 150 else body_text,
+                "similarity_score": comment.get("similarity_score", 0.0),
+                "citation_id": comment.get("citation_id", ""),
             })
             confidence += 0.2
     
