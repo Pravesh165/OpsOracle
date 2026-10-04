@@ -6,8 +6,8 @@ from .synthesizer import synthesizer
 from .writer import writer
 from .pipeline import pipeline as opsmind_pipeline
 from .search import search
+from .triage_agent import triage_agent
 from .root import root
-# Guardrail agent moved to safety module
 
 __all__ = [
     'listener',
@@ -15,5 +15,6 @@ __all__ = [
     'writer',
     'opsmind_pipeline',
     'search',
+    'triage_agent',
     'root',
 ] 

@@ -12,6 +12,9 @@ from opsmind.tools import (
     generate_postmortem_content,
     save_postmortem,
     list_postmortem_files,
+    triage_incident,
+    get_triage_status,
+    transition_incident_state,
 )
 from opsmind.tools.knowledge import (
     search_knowledge_base,
@@ -37,6 +40,7 @@ from opsmind.tools.guardrail import (
     get_system_resources
 )
 from .pipeline import pipeline
+from .triage_agent import triage_agent
 
 # Root Agent - Entry point with enhanced Jira capabilities
 root = Agent(
@@ -62,6 +66,14 @@ root = Agent(
     - Incident management and postmortem generation
     - Web search fallback for current information
     
+    **Incident Triage:**
+    - "Triage incident INC0000045"
+    - "What is the severity of this incident: P1 network outage?"
+    - "Route this incident to the right team"
+    - "What is the current state of incident INC0000045?"
+    - "Transition incident INC0000045 to ACKNOWLEDGED"
+    - "Show me all critical incidents"
+
     **Knowledge Repository Queries:**
     
     1. **General SRE/DevOps Questions:**
@@ -96,6 +108,9 @@ root = Agent(
        - "Find JIRA discussions about specific incidents"
     
     **Knowledge Repository Tools:**
+    - triage_incident: Score severity, urgency, impact, affected service, and route to team
+    - get_triage_status: Get current triage state for an incident
+    - transition_incident_state: Advance incident through lifecycle states
     - search_knowledge_base: Comprehensive search across all historical data
     - answer_devops_question: Answer any SRE/DevOps question using knowledge base
     - find_similar_issues: Find similar issues and their proven resolutions
@@ -147,8 +162,12 @@ root = Agent(
     generate_content_config=types.GenerateContentConfig(
         top_p=0.1,
     ),
-    sub_agents=[pipeline],
+    sub_agents=[pipeline, triage_agent],
     tools=[
+        # Triage Tools
+        triage_incident,
+        get_triage_status,
+        transition_incident_state,
         # Knowledge Repository Tools
         search_knowledge_base,
         answer_devops_question,

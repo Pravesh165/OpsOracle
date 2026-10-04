@@ -800,8 +800,8 @@ pytest tests/ -v --tb=short
 
 ```
 Phase 0  (Day 1 AM)   — Bug fixes. Foundation must be solid.
-Phase 1  (Day 1 PM)   — Semantic RAG. Everything downstream depends on this.
-Phase 2  (Day 2 AM)   — Incident Triage. Core agentic workflow.
+Phase 1  (Day 1 PM)   — Semantic RAG. Everything downstream depends on this. ✅ DONE
+Phase 2  (Day 2 AM)   — Incident Triage. Core agentic workflow. ✅ DONE
 Phase 3  (Day 2 PM)   — RCA + Citations. The "wow" LLM feature.
 Phase 4  (Day 3 AM)   — Approval + Runbooks. The "trust" feature.
 Phase 5  (Day 3 PM)   — Verification. Closes the loop.
