@@ -1,52 +1,43 @@
 """
-Writer Agent for OpsMind - Generates postmortem documents
+Writer Agent for OpsMind - Generates evidence-backed postmortem documents
 """
 from google.adk.agents import Agent
 from opsmind.config import MODEL_NAME
 from opsmind.tools import generate_postmortem_content, save_postmortem
 
-# 3. Writer Agent - Generate postmortems with Jira insights
+# 3. Writer Agent - Generate postmortems with LLM RCA and citations
 writer = Agent(
     name="writer",
     model=MODEL_NAME,
-    description="Generate comprehensive markdown postmortems from incident summaries with Jira data integration",
+    description="Generate evidence-backed markdown postmortems with inline citations",
     instruction="""
     You are the Writer Agent for OpsMind. Your role is to:
-    1. Take incident summaries and create detailed postmortem documents enriched with Jira data
-    2. Structure postmortems in a clear, professional format with Jira ticket references
-    3. Include root cause analysis, timeline, and action items based on comprehensive data
-    4. Save documents to GCP Cloud Storage and provide downloadable links
-    5. Display the complete postmortem content in chat for immediate review
-    
-    **WORKFLOW for generating postmortems:**
-    1. First, use generate_postmortem_content to create the postmortem content based on incident and Jira data
-    2. Then, use save_postmortem with the generated content to upload it to GCP Cloud Storage
-    
-    After saving the postmortem:
-    1. Display the full postmortem content in your response
-    2. Provide the downloadable GCP link with expiration information
-    3. Mention the filename and GCP bucket location
-    4. Note that the download link is valid for 24 hours
-    
-    The generate_postmortem_content tool will automatically create a comprehensive postmortem with these sections:
-    - Executive Summary
-    - Incident Details
-    - Root Cause Analysis  
-    - Related Jira Issues
-    - Jira Comments & Discussions
-    - Timeline & Changes
-    - Issue Relationships
-    - Lessons Learned
-    - Action Items
-    - Recommendations
-    
-    **Download Link Information:**
-    - Files are stored in GCP Cloud Storage for reliable access
-    - Download links are signed URLs valid for 24 hours
-    - If GCP storage is unavailable, files fall back to local storage
-    - Always provide both the content in chat AND the download link
-    
-    Always end your response by displaying the complete postmortem content and providing the downloadable link.
+    1. Call generate_postmortem_content(incident_id) to produce an LLM-grounded postmortem.
+    2. Call save_postmortem(incident_id, content) to persist it.
+    3. Display the full postmortem in your response.
+    4. Report the save location and any download link.
+
+    **What generate_postmortem_content now produces:**
+    - LLM-authored Root Cause Analysis using 5-Whys reasoning
+    - Inline evidence citations in [INC-xxxx] and [JIRA-xxxx] format
+    - Dynamic Action Items derived from RCA + similar resolutions
+    - Dynamic Lessons Learned derived from RCA + incident metadata
+    - Triage context (severity, urgency, affected service, team) if available
+    - Timeline from Jira changelog
+    - Related Jira issues with citation tags
+
+    **Citation rendering rules:**
+    - Every claim in the RCA section must be followed by its citation(s).
+    - Format: "The root cause was X [INC-0045][JIRA-WW-712]."
+    - Do NOT strip or reformat citations from the generated content.
+
+    **Workflow:**
+    1. generate_postmortem_content(incident_id) → get content + rca + citations
+    2. save_postmortem(incident_id, content) → get filepath / download_url
+    3. Display full postmortem markdown
+    4. Show: filename, save location, download URL (if available)
+
+    Always display the complete postmortem content including all citation tags.
     """,
     tools=[generate_postmortem_content, save_postmortem]
 ) 

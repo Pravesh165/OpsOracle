@@ -4,162 +4,179 @@ Postmortem generation tools for OpsMind
 import os
 from pathlib import Path
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from google.adk.tools.tool_context import ToolContext
 from opsmind.config import OUTPUT_DIR, logger, GCP_STORAGE_ENABLED
 from opsmind.utils import upload_file_to_gcp, generate_download_link, list_postmortem_files_in_gcp
 from opsmind.tools.guardrail import with_guardrail
+from opsmind.tools.rca import (
+    generate_rca,
+    format_citations,
+    extract_action_items,
+    extract_lessons_learned,
+)
+
 
 @with_guardrail
 async def generate_postmortem_content(
     tool_context: ToolContext,
     incident_id: str
 ) -> Dict[str, str]:
-    """Generate postmortem content based on incident and Jira data"""
+    """Generate LLM-grounded postmortem content with evidence citations."""
     try:
-        # Import here to avoid circular import
         from opsmind.context import get_incident_context
-        
-        # Get incident context data
+
         context_result = await get_incident_context(tool_context, incident_id)
-        
         if context_result["status"] != "success":
             return {"status": "error", "message": f"Failed to get context for incident {incident_id}"}
-        
+
         relevant_context = context_result["context"]
-        
-        # Find specific incident data
-        incident_data = None
-        for item in relevant_context:
-            if item.get("type") == "incident" and item.get("id") == incident_id:
-                incident_data = item
-                break
-        
-        # Collect related Jira data
-        jira_issues = [item for item in relevant_context if item.get("type") == "jira_issue"]
-        jira_comments = [item for item in relevant_context if item.get("type") == "jira_comment"]
-        jira_changelog = [item for item in relevant_context if item.get("type") == "jira_changelog"]
-        jira_links = [item for item in relevant_context if item.get("type") == "jira_link"]
-        
-        # Generate postmortem content
+
+        # Locate the specific incident record
+        incident_data = next(
+            (item for item in relevant_context
+             if item.get("type") == "incident" and item.get("id") == incident_id),
+            None,
+        )
+
+        # Partition evidence by type
+        evidence_chunks: List[Dict[str, Any]] = [
+            item for item in relevant_context
+            if item.get("citation_id") or item.get("similarity_score")
+        ]
+        jira_issues = [i for i in relevant_context if i.get("type") == "jira_issue"]
+        jira_comments = [i for i in relevant_context if i.get("type") == "jira_comment"]
+        jira_changelog = [i for i in relevant_context if i.get("type") == "jira_changelog"]
+
+        # Pull triage result from session state if available
+        triage_result = (
+            tool_context.state.get("incident_states", {}).get(incident_id)
+        )
+
+        # --- LLM-grounded RCA ---
+        rca_result = generate_rca(
+            incident_id=incident_id,
+            evidence_chunks=evidence_chunks,
+            triage_result=triage_result,
+            incident_data=incident_data,
+        )
+
+        # --- Citation rendering ---
+        all_citations = format_citations(evidence_chunks)
+        rca_citations = format_citations(
+            [{"citation_id": eid} for eid in rca_result.get("evidence_ids", [])]
+        )
+
+        # --- Dynamic action items + lessons ---
+        similar_resolutions = [
+            str(i.get("resolution") or i.get("resolution.name") or "")
+            for i in jira_issues[:5]
+        ]
+        action_items = extract_action_items(rca_result, similar_resolutions)
+        lessons = extract_lessons_learned(rca_result, incident_data)
+
+        # --- Assemble markdown ---
+        inc = incident_data or {}
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Triage block
+        triage_block = ""
+        if triage_result:
+            triage_block = (
+                f"- **Severity**: {triage_result.get('severity', 'N/A')} "
+                f"({triage_result.get('urgency', 'N/A')})\n"
+                f"- **Impact**: {triage_result.get('impact', 'N/A')}\n"
+                f"- **Affected Service**: {triage_result.get('affected_service', 'N/A')}\n"
+                f"- **Suggested Team**: {triage_result.get('suggested_team', 'N/A')}\n"
+            )
+
+        # Contributing factors block
+        factors_block = ""
+        for cf in rca_result.get("contributing_factors", [])[:4]:
+            if isinstance(cf, dict):
+                eid = cf.get("evidence_id", "")
+                cite = f" [{eid}]" if eid else ""
+                factors_block += f"- {cf.get('factor', '')} (confidence: {cf.get('confidence', 0):.0%}){cite}\n"
+            elif isinstance(cf, str):
+                factors_block += f"- {cf}\n"
+
+        # Related Jira issues block
+        jira_block = ""
+        for issue in jira_issues[:5]:
+            cid = issue.get("citation_id", "")
+            cite = f" [{cid}]" if cid else ""
+            jira_block += (
+                f"### {issue.get('key', issue.get('id', 'Unknown'))}{cite}\n"
+                f"- **Summary**: {issue.get('summary', 'No summary')}\n"
+                f"- **Status**: {issue.get('status', issue.get('status.name', 'Unknown'))}\n"
+                f"- **Priority**: {issue.get('priority', issue.get('priority.name', 'Unknown'))}\n\n"
+            )
+        if not jira_block:
+            jira_block = "No directly related Jira issues found.\n"
+
+        # Timeline block
+        timeline_block = ""
+        for change in jira_changelog[:5]:
+            timeline_block += (
+                f"- **{change.get('created', '?')}**: "
+                f"{change.get('field', 'field')} changed "
+                f"from \"{change.get('from_string', 'N/A')}\" "
+                f"to \"{change.get('to_string', 'N/A')}\" "
+                f"by {change.get('author', 'Unknown')}\n"
+            )
+        if not timeline_block:
+            timeline_block = "No changelog data found.\n"
+
+        # Action items block
+        actions_block = "".join(f"{i+1}. {a}\n" for i, a in enumerate(action_items))
+
+        # Lessons block
+        lessons_block = "".join(f"- {l}\n" for l in lessons)
+
         postmortem_content = f"""# Incident Postmortem: {incident_id}
 
 ## Executive Summary
-This postmortem analyzes incident {incident_id} based on available incident data and related Jira information.
+This postmortem analyzes incident {incident_id} using evidence-grounded root cause analysis.
+RCA confidence: **{rca_result['confidence']:.0%}**. Evidence sources: {all_citations or 'keyword search'}
 
 ## Incident Details
 - **Incident ID**: {incident_id}
-- **Date/Time**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-- **Status**: {incident_data.get('state', 'Unknown') if incident_data else 'Data not found'}
-- **Category**: {incident_data.get('category', 'Unknown') if incident_data else 'Data not found'}
-- **Priority**: {incident_data.get('priority', 'Unknown') if incident_data else 'Data not found'}
-- **Description**: {incident_data.get('short_description', 'No description available') if incident_data else 'Data not found'}
-
+- **Date/Time**: {inc.get('opened_at', now)}
+- **Status**: {inc.get('state', 'Unknown')}
+- **Category**: {inc.get('category', 'Unknown')}
+- **Priority**: {inc.get('priority', 'Unknown')}
+- **Description**: {inc.get('short_description', inc.get('symptom', 'No description available'))}
+{triage_block}
 ## Root Cause Analysis
-"""
-        
-        if incident_data:
-            postmortem_content += f"""
-Based on the incident data:
-- **Symptom**: {incident_data.get('symptom', 'Not specified')}
-- **Resolution Code**: {incident_data.get('resolution', 'Not specified')}
-- **Full Description**: {incident_data.get('description', 'No detailed description available')}
-"""
-        else:
-            postmortem_content += f"""
-Incident {incident_id} was not found in the available incident data. This postmortem is based on related information from the system.
-"""
 
-        postmortem_content += f"""
+**Root Cause**: {rca_result['root_cause']} {rca_citations}
+
+### Contributing Factors
+{factors_block or 'No contributing factors identified.\n'}
 
 ## Related Jira Issues
-"""
-        if jira_issues:
-            for issue in jira_issues[:5]:  # Limit to top 5 most relevant
-                postmortem_content += f"""
-### {issue.get('key', 'Unknown')}
-- **Summary**: {issue.get('summary', 'No summary')}
-- **Status**: {issue.get('status', 'Unknown')}
-- **Priority**: {issue.get('priority', 'Unknown')}
-- **Assignee**: {issue.get('assignee', 'Unassigned')}
-- **Description**: {issue.get('description', 'No description')[:200]}...
-"""
-        else:
-            postmortem_content += "\nNo directly related Jira issues found in the current dataset.\n"
-
-        postmortem_content += f"""
-
-## Jira Comments & Discussions
-"""
-        if jira_comments:
-            for comment in jira_comments[:3]:  # Limit to top 3 most relevant
-                postmortem_content += f"""
-**Issue**: {comment.get('issue_key', 'Unknown')}  
-**Author**: {comment.get('author', 'Unknown')}  
-**Date**: {comment.get('created', 'Unknown')}  
-**Comment**: {comment.get('body', 'No content')[:300]}...
-
-"""
-        else:
-            postmortem_content += "\nNo related Jira comments found in the current dataset.\n"
-
-        postmortem_content += f"""
-
+{jira_block}
 ## Timeline & Changes
-"""
-        if jira_changelog:
-            postmortem_content += "\n**Key Status Changes from Jira:**\n"
-            for change in jira_changelog[:5]:  # Limit to top 5 most relevant
-                postmortem_content += f"""
-- **{change.get('created', 'Unknown date')}**: {change.get('field', 'Field')} changed from "{change.get('from_string', 'N/A')}" to "{change.get('to_string', 'N/A')}" by {change.get('author', 'Unknown')}
-"""
-        else:
-            postmortem_content += "\nNo Jira changelog data found for related issues.\n"
-
-        postmortem_content += f"""
-
-## Issue Relationships
-"""
-        if jira_links:
-            postmortem_content += "\n**Related Issue Links:**\n"
-            for link in jira_links[:3]:  # Limit to top 3
-                postmortem_content += f"""
-- {link.get('source_key', 'Unknown')} {link.get('link_type', 'relates to')} {link.get('target_key', 'Unknown')}
-"""
-        else:
-            postmortem_content += "\nNo issue links found in the current dataset.\n"
-
-        postmortem_content += f"""
-
+{timeline_block}
 ## Lessons Learned
-Based on the available data and analysis:
-- Review incident categorization and symptom documentation
-- Ensure proper linkage between incidents and Jira tracking
-- Consider improving data collection for future postmortem analysis
-
+{lessons_block}
 ## Action Items
-1. **Data Quality**: Improve incident data collection and Jira integration
-2. **Process Review**: Ensure all incidents have proper Jira ticket tracking
-3. **Documentation**: Enhance incident description and symptom recording
-4. **Monitoring**: Implement better incident-to-issue correlation
-
-## Recommendations
-- Establish clearer incident-to-Jira workflow processes
-- Improve data consistency across incident and issue tracking systems
-- Regular review of incident patterns and Jira issue resolution times
-
+{actions_block}
 ---
-*This postmortem was automatically generated from available incident and Jira data on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S')}*
+*Generated by OpsMind on {now}*
 """
-        
+
         return {
             "status": "success",
             "incident_id": incident_id,
             "content": postmortem_content,
-            "message": f"Generated postmortem content for incident {incident_id}"
+            "rca": rca_result,
+            "citations": all_citations,
+            "message": f"Generated postmortem for incident {incident_id} "
+                        f"(RCA confidence {rca_result['confidence']:.0%})",
         }
-        
+
     except Exception as e:
         logger.error(f"Error generating postmortem content: {e}")
         return {"status": "error", "message": str(e)}

@@ -10,6 +10,7 @@ from .knowledge import (
     get_historical_patterns
 )
 from .triage import triage_incident, get_triage_status, transition_incident_state
+from .rca import generate_rca, format_citations, extract_action_items, extract_lessons_learned
 # Context tools moved to context module
 # Guardrail tools
 from .guardrail import with_guardrail, check_guardrails_health, initialize_guardrails
@@ -30,6 +31,11 @@ __all__ = [
     'triage_incident',
     'get_triage_status',
     'transition_incident_state',
+    # RCA Tools
+    'generate_rca',
+    'format_citations',
+    'extract_action_items',
+    'extract_lessons_learned',
     # Guardrail Tools
     'with_guardrail',
     'check_guardrails_health',
