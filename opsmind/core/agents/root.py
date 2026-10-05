@@ -43,6 +43,7 @@ from .pipeline import pipeline
 from .triage_agent import triage_agent
 from .approval_agent import approval_agent
 from .runbook_agent import runbook_agent
+from .verification_agent import verification_agent
 from opsmind.tools import (
     request_human_approval,
     approve_action,
@@ -51,6 +52,10 @@ from opsmind.tools import (
     search_runbooks,
     get_runbook_steps,
     execute_runbook_step,
+    verify_resolution,
+    run_health_check,
+    close_incident,
+    reopen_incident,
 )
 
 # Root Agent - Entry point with enhanced Jira capabilities
@@ -92,6 +97,12 @@ root = Agent(
     - "What needs my approval?"
     - "Approve APR-000001"
     - "Reject APR-000001"
+
+    **Post-Remediation Verification:**
+    - "Verify resolution of INC0000045 with HTTP health check"
+    - "Run health check on http://host/health expecting 200"
+    - "Close incident INC0000045"
+    - "Re-open incident INC0000045 — fix didn't hold"
 
     **Knowledge Repository Queries:**
     
@@ -188,7 +199,7 @@ root = Agent(
     generate_content_config=types.GenerateContentConfig(
         top_p=0.1,
     ),
-    sub_agents=[pipeline, triage_agent, approval_agent, runbook_agent],
+    sub_agents=[pipeline, triage_agent, approval_agent, runbook_agent, verification_agent],
     tools=[
         # Triage Tools
         triage_incident,
@@ -203,6 +214,11 @@ root = Agent(
         search_runbooks,
         get_runbook_steps,
         execute_runbook_step,
+        # Verification Tools
+        verify_resolution,
+        run_health_check,
+        close_incident,
+        reopen_incident,
         # Knowledge Repository Tools
         search_knowledge_base,
         answer_devops_question,

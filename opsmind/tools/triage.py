@@ -316,6 +316,76 @@ async def transition_incident_state(
     }
 
 
+@with_guardrail
+async def close_incident(
+    tool_context: ToolContext,
+    incident_id: str,
+) -> Dict[str, Any]:
+    """
+    Close a RESOLVED incident (RESOLVED → CLOSED).
+
+    Args:
+        incident_id: The incident identifier.
+
+    Returns:
+        Updated state record.
+    """
+    return await transition_incident_state(tool_context, incident_id, "CLOSED")
+
+
+@with_guardrail
+async def reopen_incident(
+    tool_context: ToolContext,
+    incident_id: str,
+    reason: str = "",
+) -> Dict[str, Any]:
+    """
+    Re-open a closed or resolved incident back to MITIGATING for re-investigation.
+
+    Bypasses the normal state machine to allow re-opening from any terminal state.
+
+    Args:
+        incident_id: The incident identifier.
+        reason: Optional reason for re-opening.
+
+    Returns:
+        Updated state record.
+    """
+    states: Dict[str, Any] = tool_context.state.get("incident_states", {})
+    if incident_id not in states:
+        states[incident_id] = {
+            "incident_id": incident_id,
+            "state": "DETECTED",
+            "state_history": [],
+        }
+
+    record = states[incident_id]
+    current = record.get("state", "DETECTED")
+
+    history: List[Dict[str, str]] = record.get("state_history", [])
+    history.append({
+        "from": current,
+        "to": "MITIGATING",
+        "at": datetime.now().isoformat(),
+        "reason": reason or "re-opened for re-investigation",
+    })
+    record["state"] = "MITIGATING"
+    record["state_history"] = history
+    record["reopened_at"] = datetime.now().isoformat()
+    record["reopen_reason"] = reason
+    states[incident_id] = record
+    tool_context.state["incident_states"] = states
+
+    logger.info("Incident %s re-opened: %s → MITIGATING (reason: %s)", incident_id, current, reason)
+    return {
+        "incident_id": incident_id,
+        "previous_state": current,
+        "new_state": "MITIGATING",
+        "transitioned_at": datetime.now().isoformat(),
+        "reason": reason,
+    }
+
+
 # ---------------------------------------------------------------------------
 # Internal helper (no ToolContext — used by transition_incident_state too)
 # ---------------------------------------------------------------------------

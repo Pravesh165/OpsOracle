@@ -9,6 +9,7 @@ from .search import search
 from .triage_agent import triage_agent
 from .approval_agent import approval_agent
 from .runbook_agent import runbook_agent
+from .verification_agent import verification_agent
 from .root import root
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     'triage_agent',
     'approval_agent',
     'runbook_agent',
+    'verification_agent',
     'root',
 ] 
