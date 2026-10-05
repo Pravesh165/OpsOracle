@@ -1,0 +1,27 @@
+id: flush_cache
+name: Flush Application Cache
+description: Clear Redis or application cache to resolve stale data issues
+trigger_conditions:
+  - category: software
+  - keywords: [stale data, cache, redis, wrong data, outdated]
+steps:
+  - id: check_cache_size
+    description: Check current cache size and memory usage
+    command: "redis-cli -h {redis_host} INFO memory"
+    risk_tier: LOW
+    dry_run_output: "used_memory_human: 512M (simulated)"
+  - id: identify_stale_keys
+    description: Identify stale key patterns
+    command: "redis-cli -h {redis_host} SCAN 0 MATCH {key_pattern} COUNT 100"
+    risk_tier: LOW
+    dry_run_output: "Found 47 keys matching pattern (simulated)"
+  - id: flush_cache
+    description: Flush targeted cache keys
+    command: "redis-cli -h {redis_host} DEL {key_pattern}"
+    risk_tier: MEDIUM
+    dry_run_output: "Would delete keys matching {key_pattern} (dry-run)"
+  - id: verify_cache_cleared
+    description: Verify cache was cleared successfully
+    command: "redis-cli -h {redis_host} SCAN 0 MATCH {key_pattern} COUNT 100"
+    risk_tier: LOW
+    dry_run_output: "0 keys matching pattern (simulated)"

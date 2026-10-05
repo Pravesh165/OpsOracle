@@ -1,0 +1,22 @@
+id: scale_deployment
+name: Scale Kubernetes Deployment
+description: Scale replicas up or down to handle load changes
+trigger_conditions:
+  - category: software
+  - keywords: [high load, cpu, memory, scale, replicas, pods]
+steps:
+  - id: check_current_replicas
+    description: Check current replica count
+    command: "kubectl get deployment {deployment_name} -o jsonpath='{.spec.replicas}'"
+    risk_tier: LOW
+    dry_run_output: "Current replicas: 2 (simulated)"
+  - id: scale_up
+    description: Scale deployment to target replica count
+    command: "kubectl scale deployment {deployment_name} --replicas={target_replicas}"
+    risk_tier: HIGH
+    dry_run_output: "Would scale {deployment_name} to {target_replicas} replicas (dry-run)"
+  - id: verify_rollout
+    description: Wait for rollout to complete
+    command: "kubectl rollout status deployment/{deployment_name}"
+    risk_tier: MEDIUM
+    dry_run_output: "Rollout complete: {deployment_name} (simulated)"

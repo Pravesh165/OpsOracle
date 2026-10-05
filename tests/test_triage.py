@@ -53,6 +53,8 @@ import logging as _logging
 _cfg_mod = _t.ModuleType("opsmind.config")
 _cfg_mod.logger = _logging.getLogger("test_triage")
 _cfg_mod.MODEL_NAME = "gemini-2.0-flash-001"
+_cfg_mod.OUTPUT_DIR = os.path.join(_ROOT, "output")
+_cfg_mod.GCP_STORAGE_ENABLED = False
 sys.modules["opsmind.config"] = _cfg_mod
 
 # Stub opsmind.tools.guardrail — make with_guardrail a no-op pass-through

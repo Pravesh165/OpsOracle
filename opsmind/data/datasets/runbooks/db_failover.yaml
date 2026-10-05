@@ -1,0 +1,32 @@
+id: db_failover
+name: Database Failover
+description: Promote replica to primary during database failure
+trigger_conditions:
+  - category: database
+  - keywords: [database down, db failure, primary down, replication, failover]
+steps:
+  - id: check_replication_lag
+    description: Check replication lag on replica
+    command: "psql -h {replica_host} -c 'SELECT now() - pg_last_xact_replay_timestamp()'"
+    risk_tier: LOW
+    dry_run_output: "Replication lag: 0.5s (simulated)"
+  - id: stop_writes_to_primary
+    description: Stop writes to failing primary
+    command: "psql -h {primary_host} -c 'SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state = active'"
+    risk_tier: HIGH
+    dry_run_output: "Would terminate active connections on primary (dry-run)"
+  - id: promote_replica
+    description: Promote replica to primary
+    command: "pg_ctl promote -D {replica_data_dir}"
+    risk_tier: HIGH
+    dry_run_output: "Would promote replica at {replica_data_dir} to primary (dry-run)"
+  - id: update_dns
+    description: Update DNS to point to new primary
+    command: "aws route53 change-resource-record-sets --hosted-zone-id {zone_id} --change-batch file://dns_change.json"
+    risk_tier: HIGH
+    dry_run_output: "Would update DNS record to {replica_host} (dry-run)"
+  - id: verify_connectivity
+    description: Verify application can connect to new primary
+    command: "psql -h {replica_host} -c 'SELECT 1'"
+    risk_tier: LOW
+    dry_run_output: "Connection successful to new primary (simulated)"

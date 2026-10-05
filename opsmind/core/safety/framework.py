@@ -21,6 +21,7 @@ class GuardrailType(Enum):
     VALIDATION = "validation"
     RATE_LIMITING = "rate_limiting"
     UI_CONTENT_ESCAPING = "ui_content_escaping"
+    HUMAN_APPROVAL = "human_approval"
 
 
 class GuardrailStatus(Enum):

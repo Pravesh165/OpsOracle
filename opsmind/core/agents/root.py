@@ -41,6 +41,17 @@ from opsmind.tools.guardrail import (
 )
 from .pipeline import pipeline
 from .triage_agent import triage_agent
+from .approval_agent import approval_agent
+from .runbook_agent import runbook_agent
+from opsmind.tools import (
+    request_human_approval,
+    approve_action,
+    reject_action,
+    get_pending_approvals,
+    search_runbooks,
+    get_runbook_steps,
+    execute_runbook_step,
+)
 
 # Root Agent - Entry point with enhanced Jira capabilities
 root = Agent(
@@ -73,6 +84,14 @@ root = Agent(
     - "What is the current state of incident INC0000045?"
     - "Transition incident INC0000045 to ACKNOWLEDGED"
     - "Show me all critical incidents"
+
+    **Runbook Remediation:**
+    - "Search for a runbook to restart a service"
+    - "Show me the steps for rollback_deployment"
+    - "Execute restart_service runbook for prod-api (dry-run)"
+    - "What needs my approval?"
+    - "Approve APR-000001"
+    - "Reject APR-000001"
 
     **Knowledge Repository Queries:**
     
@@ -111,6 +130,13 @@ root = Agent(
     - triage_incident: Score severity, urgency, impact, affected service, and route to team
     - get_triage_status: Get current triage state for an incident
     - transition_incident_state: Advance incident through lifecycle states
+    - search_runbooks: Find runbooks by name, category, or trigger keywords
+    - get_runbook_steps: Get ordered steps with risk tiers for a runbook
+    - execute_runbook_step: Execute a single runbook step (dry-run by default)
+    - request_human_approval: Request human approval for a HIGH-risk action
+    - approve_action: Approve a pending action by approval ID
+    - reject_action: Reject a pending action by approval ID
+    - get_pending_approvals: List all pending approval requests
     - search_knowledge_base: Comprehensive search across all historical data
     - answer_devops_question: Answer any SRE/DevOps question using knowledge base
     - find_similar_issues: Find similar issues and their proven resolutions
@@ -162,12 +188,21 @@ root = Agent(
     generate_content_config=types.GenerateContentConfig(
         top_p=0.1,
     ),
-    sub_agents=[pipeline, triage_agent],
+    sub_agents=[pipeline, triage_agent, approval_agent, runbook_agent],
     tools=[
         # Triage Tools
         triage_incident,
         get_triage_status,
         transition_incident_state,
+        # Approval Tools
+        request_human_approval,
+        approve_action,
+        reject_action,
+        get_pending_approvals,
+        # Runbook Tools
+        search_runbooks,
+        get_runbook_steps,
+        execute_runbook_step,
         # Knowledge Repository Tools
         search_knowledge_base,
         answer_devops_question,

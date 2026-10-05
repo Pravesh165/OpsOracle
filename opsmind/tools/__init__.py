@@ -11,6 +11,8 @@ from .knowledge import (
 )
 from .triage import triage_incident, get_triage_status, transition_incident_state
 from .rca import generate_rca, format_citations, extract_action_items, extract_lessons_learned
+from .approval import request_human_approval, approve_action, reject_action, get_pending_approvals
+from .runbooks import search_runbooks, get_runbook_steps, execute_runbook_step
 # Context tools moved to context module
 # Guardrail tools
 from .guardrail import with_guardrail, check_guardrails_health, initialize_guardrails
@@ -36,6 +38,15 @@ __all__ = [
     'format_citations',
     'extract_action_items',
     'extract_lessons_learned',
+    # Approval Tools
+    'request_human_approval',
+    'approve_action',
+    'reject_action',
+    'get_pending_approvals',
+    # Runbook Tools
+    'search_runbooks',
+    'get_runbook_steps',
+    'execute_runbook_step',
     # Guardrail Tools
     'with_guardrail',
     'check_guardrails_health',

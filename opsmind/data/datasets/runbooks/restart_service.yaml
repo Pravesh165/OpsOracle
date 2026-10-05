@@ -1,0 +1,22 @@
+id: restart_service
+name: Restart Application Service
+description: Gracefully restart a service after a crash or hang
+trigger_conditions:
+  - category: software
+  - keywords: [crash, not responding, hang, unresponsive, restart]
+steps:
+  - id: check_health
+    description: Check service health endpoint
+    command: "curl -f http://{service_host}/health"
+    risk_tier: LOW
+    dry_run_output: "HTTP 503 Service Unavailable (simulated)"
+  - id: graceful_restart
+    description: Gracefully restart the service
+    command: "systemctl restart {service_name}"
+    risk_tier: MEDIUM
+    dry_run_output: "Would restart {service_name} (dry-run)"
+  - id: verify_health
+    description: Verify service health after restart
+    command: "curl -f http://{service_host}/health"
+    risk_tier: LOW
+    dry_run_output: "HTTP 200 OK (simulated)"

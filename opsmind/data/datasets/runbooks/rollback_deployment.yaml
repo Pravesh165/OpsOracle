@@ -1,0 +1,27 @@
+id: rollback_deployment
+name: Rollback Deployment
+description: Roll back a Kubernetes deployment to the previous stable version
+trigger_conditions:
+  - category: software
+  - keywords: [bad deploy, rollback, regression, broken release, revert]
+steps:
+  - id: check_rollout_history
+    description: Check deployment rollout history
+    command: "kubectl rollout history deployment/{deployment_name}"
+    risk_tier: LOW
+    dry_run_output: "REVISION  CHANGE-CAUSE\n1         Initial deploy\n2         v1.2.3 release (simulated)"
+  - id: rollback
+    description: Roll back to previous revision
+    command: "kubectl rollout undo deployment/{deployment_name}"
+    risk_tier: HIGH
+    dry_run_output: "Would roll back {deployment_name} to revision 1 (dry-run)"
+  - id: verify_rollback
+    description: Verify rollback completed successfully
+    command: "kubectl rollout status deployment/{deployment_name}"
+    risk_tier: MEDIUM
+    dry_run_output: "Rollback complete: {deployment_name} running revision 1 (simulated)"
+  - id: smoke_test
+    description: Run smoke test against rolled-back service
+    command: "curl -f http://{service_host}/health"
+    risk_tier: LOW
+    dry_run_output: "HTTP 200 OK (simulated)"
