@@ -16,6 +16,7 @@ from opsmind.tools.rca import (
     extract_action_items,
     extract_lessons_learned,
 )
+from opsmind.tools.learning import ingest_postmortem
 
 
 @with_guardrail
@@ -208,6 +209,8 @@ async def save_postmortem(
                 
                 if download_result["status"] == "success":
                     logger.info(f"Saved postmortem to GCP Storage: {filename}")
+                    # Trigger learning loop — ingest into local retriever
+                    _trigger_ingestion(incident_id, postmortem_content)
                     return {
                         "status": "success",
                         "filename": filename,
@@ -232,16 +235,30 @@ async def save_postmortem(
             else:
                 logger.error(f"Failed to upload to GCP Storage: {upload_result['message']}")
                 # Fallback to local storage
-                return _save_postmortem_local(filename, postmortem_content)
+                return _save_postmortem_local(filename, postmortem_content, incident_id)
         else:
             # GCP Storage disabled, use local storage
-            return _save_postmortem_local(filename, postmortem_content)
+            return _save_postmortem_local(filename, postmortem_content, incident_id)
             
     except Exception as e:
         logger.error(f"Error saving postmortem: {e}")
         return {"status": "error", "message": str(e)}
 
-def _save_postmortem_local(filename: str, postmortem_content: str) -> Dict[str, Any]:
+def _trigger_ingestion(incident_id: str, content: str) -> None:
+    """Write content to a temp file and ingest into the retriever. Fire-and-forget."""
+    try:
+        import tempfile
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".md", delete=False, encoding="utf-8"
+        ) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+        ingest_postmortem(tmp_path, incident_id)
+    except Exception as exc:
+        logger.warning("Learning loop ingestion failed (non-fatal): %s", exc)
+
+
+def _save_postmortem_local(filename: str, postmortem_content: str, incident_id: str = "") -> Dict[str, Any]:
     """Fallback function to save postmortem locally"""
     try:
         output_dir = Path(OUTPUT_DIR)
@@ -253,6 +270,9 @@ def _save_postmortem_local(filename: str, postmortem_content: str) -> Dict[str, 
             f.write(postmortem_content)
         
         logger.info(f"Saved postmortem locally to {filepath}")
+        # Trigger learning loop — ingest into retriever
+        if incident_id:
+            _trigger_ingestion(incident_id, postmortem_content)
         return {
             "status": "success", 
             "filepath": str(filepath),

@@ -56,6 +56,9 @@ from opsmind.tools import (
     run_health_check,
     close_incident,
     reopen_incident,
+    ingest_postmortem,
+    mark_resolution_helpful,
+    get_knowledge_stats,
 )
 
 # Root Agent - Entry point with enhanced Jira capabilities
@@ -103,6 +106,11 @@ root = Agent(
     - "Run health check on http://host/health expecting 200"
     - "Close incident INC0000045"
     - "Re-open incident INC0000045 — fix didn't hold"
+
+    **Knowledge Learning:**
+    - "Ingest postmortem for INC0000045 from output/postmortem_INC0000045.md"
+    - "Mark resolution for INC0000045 as helpful"
+    - "Show knowledge base statistics"
 
     **Knowledge Repository Queries:**
     
@@ -219,6 +227,10 @@ root = Agent(
         run_health_check,
         close_incident,
         reopen_incident,
+        # Learning Tools
+        ingest_postmortem,
+        mark_resolution_helpful,
+        get_knowledge_stats,
         # Knowledge Repository Tools
         search_knowledge_base,
         answer_devops_question,
