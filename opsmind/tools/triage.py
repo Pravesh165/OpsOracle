@@ -11,6 +11,8 @@ from google.adk.tools.tool_context import ToolContext
 
 from opsmind.config import logger
 from opsmind.tools.guardrail import with_guardrail
+from opsmind.audit.decorator import audit_action
+from opsmind.tools.jira_write import create_jira_ticket
 
 # ---------------------------------------------------------------------------
 # Severity matrix  (priority, category) → base score 0–1
@@ -153,13 +155,14 @@ def _impact_label(score: float) -> str:
 # ---------------------------------------------------------------------------
 
 @with_guardrail
+@audit_action("triage_incident", tool_name="triage_incident")
 async def triage_incident(
     tool_context: ToolContext,
     incident_data: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
     Triage an incident: compute severity, urgency, impact, affected service,
-    and suggested owner team.
+    and suggested owner team. Automatically creates a JIRA ticket for P1 incidents.
 
     Args:
         incident_data: Dict with keys: priority, category, symptom (or description),
@@ -195,6 +198,7 @@ async def triage_incident(
         team = _route_team(category)
         urgency = _urgency_label(score)
         impact = _impact_label(score)
+        norm_priority = _normalise_priority(priority)
 
         result: Dict[str, Any] = {
             "incident_id": incident_id,
@@ -203,7 +207,7 @@ async def triage_incident(
             "impact": impact,
             "affected_service": affected_service,
             "suggested_team": team,
-            "priority_normalised": _normalise_priority(priority),
+            "priority_normalised": norm_priority,
             "category": category,
             "state": "TRIAGED",
             "triaged_at": datetime.now().isoformat(),
@@ -212,6 +216,37 @@ async def triage_incident(
                 f"severity {score:.2f} ({urgency})"
             ),
         }
+
+        # For P1 incidents, automatically create or link a JIRA ticket
+        if norm_priority == "P1" or score >= 0.9:
+            jira_summary = f"[P1 Incident] {incident_id}: {affected_service} - {symptom[:80] if symptom else 'High Priority Outage'}"
+            jira_desc = (
+                f"h2. Automated Incident Escalation\n\n"
+                f"*Incident ID:* {incident_id}\n"
+                f"*Severity:* {score:.2f} ({urgency})\n"
+                f"*Category:* {category}\n"
+                f"*Affected Service:* {affected_service}\n"
+                f"*Routed Team:* {team}\n\n"
+                f"h3. Symptom\n{symptom or 'No detailed symptom provided.'}\n"
+            )
+            try:
+                jira_ticket = await create_jira_ticket(
+                    tool_context=tool_context,
+                    summary=jira_summary,
+                    description=jira_desc,
+                    issue_type="Incident",
+                    priority="Highest",
+                    labels=["p1-escalation", "opsmind", category.lower()],
+                )
+                result["jira_ticket"] = jira_ticket
+                logger.info(
+                    "Auto-created JIRA ticket for P1 incident %s: %s",
+                    incident_id,
+                    jira_ticket.get("key"),
+                )
+            except Exception as jira_err:
+                logger.warning("Failed to auto-create JIRA ticket for P1 incident %s: %s", incident_id, jira_err)
+                result["jira_ticket_error"] = str(jira_err)
 
         # Persist in session state
         states: Dict[str, Any] = tool_context.state.get("incident_states", {})
@@ -230,6 +265,7 @@ async def triage_incident(
     except Exception as exc:
         logger.error("Error triaging incident: %s", exc)
         return {"status": "error", "message": str(exc)}
+
 
 
 @with_guardrail

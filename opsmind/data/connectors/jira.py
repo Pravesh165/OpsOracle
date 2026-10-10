@@ -3,7 +3,10 @@ JIRA Real-time Connector for OpsMind RAG system
 """
 
 import asyncio
-import aiohttp
+try:
+    import aiohttp
+except ImportError:
+    aiohttp = None  # type: ignore
 import json
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, AsyncGenerator, cast
@@ -902,4 +905,151 @@ class JiraConnector(BaseConnector):
             
         except Exception as e:
             logger.error(f"Error correlating JIRA with incidents: {e}")
-            return {"error": str(e)} 
+            return {"error": str(e)}
+
+    async def create_issue(
+        self,
+        project_key: str,
+        summary: str,
+        description: str,
+        issue_type: str = "Bug",
+        priority: Optional[str] = None,
+        labels: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Create a new issue in JIRA.
+
+        Args:
+            project_key: Target JIRA project key (e.g. OPS)
+            summary: Short title of the issue
+            description: Detailed issue description
+            issue_type: Issue type name (default: Bug)
+            priority: Priority name (e.g. Highest, High, Medium, Low)
+            labels: Optional labels list
+
+        Returns:
+            Dictionary with issue key, id, and self URL
+        """
+        if not self.session:
+            raise ConnectionError("JIRA session not established")
+
+        fields: Dict[str, Any] = {
+            "project": {"key": project_key},
+            "summary": summary,
+            "description": description,
+            "issuetype": {"name": issue_type}
+        }
+        if priority:
+            fields["priority"] = {"name": priority}
+        if labels:
+            fields["labels"] = labels
+
+        payload = {"fields": fields}
+        url = urljoin(self.base_url, '/rest/api/2/issue')
+
+        async with self.session.post(url, json=payload) as response:
+            if response.status in (200, 201):
+                data = await response.json()
+                logger.info(f"Created JIRA issue {data.get('key')}")
+                return data
+            error_text = await response.text()
+            logger.error(f"Failed to create JIRA issue: {response.status} - {error_text}")
+            raise RuntimeError(f"JIRA issue creation failed ({response.status}): {error_text}")
+
+    async def add_comment(self, issue_key: str, body: str) -> Dict[str, Any]:
+        """
+        Add a comment to an existing JIRA issue.
+
+        Args:
+            issue_key: Target JIRA issue key
+            body: Comment markdown / text content
+
+        Returns:
+            Dictionary with comment details
+        """
+        if not self.session:
+            raise ConnectionError("JIRA session not established")
+
+        url = urljoin(self.base_url, f'/rest/api/2/issue/{issue_key}/comment')
+        payload = {"body": body}
+
+        async with self.session.post(url, json=payload) as response:
+            if response.status in (200, 201):
+                data = await response.json()
+                logger.info(f"Added comment to JIRA issue {issue_key}")
+                return data
+            error_text = await response.text()
+            logger.error(f"Failed to add comment to {issue_key}: {response.status} - {error_text}")
+            raise RuntimeError(f"JIRA comment failed ({response.status}): {error_text}")
+
+    async def transition_issue(self, issue_key: str, transition_name_or_id: str) -> Dict[str, Any]:
+        """
+        Transition an issue to a new status.
+
+        Args:
+            issue_key: Target JIRA issue key
+            transition_name_or_id: Transition name (e.g. 'In Progress') or ID
+
+        Returns:
+            Status result dictionary
+        """
+        if not self.session:
+            raise ConnectionError("JIRA session not established")
+
+        trans_url = urljoin(self.base_url, f'/rest/api/2/issue/{issue_key}/transitions')
+        target_id: Optional[str] = None
+
+        if str(transition_name_or_id).isdigit():
+            target_id = str(transition_name_or_id)
+        else:
+            # Query available transitions to find transition id
+            async with self.session.get(trans_url) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    transitions = data.get('transitions', [])
+                    target_lower = transition_name_or_id.lower().strip()
+                    for t in transitions:
+                        name = t.get('name', '').lower().strip()
+                        if name == target_lower:
+                            target_id = str(t.get('id'))
+                            break
+                else:
+                    error_text = await response.text()
+                    raise RuntimeError(f"Failed to fetch transitions for {issue_key}: {error_text}")
+
+        if not target_id:
+            raise ValueError(f"Transition '{transition_name_or_id}' not found for issue {issue_key}")
+
+        payload = {"transition": {"id": target_id}}
+        async with self.session.post(trans_url, json=payload) as response:
+            if response.status in (200, 204):
+                logger.info(f"Transitioned issue {issue_key} with transition {target_id}")
+                return {"issue_key": issue_key, "transition_id": target_id, "status": "success"}
+            error_text = await response.text()
+            logger.error(f"Failed transition for {issue_key}: {response.status} - {error_text}")
+            raise RuntimeError(f"JIRA transition failed ({response.status}): {error_text}")
+
+    async def link_issues(
+        self,
+        inward_key: str,
+        outward_key: str,
+        link_type: str = "Relates"
+    ) -> Dict[str, Any]:
+        """
+        Link two JIRA issues.
+        """
+        if not self.session:
+            raise ConnectionError("JIRA session not established")
+
+        url = urljoin(self.base_url, '/rest/api/2/issueLink')
+        payload = {
+            "type": {"name": link_type},
+            "inwardIssue": {"key": inward_key},
+            "outwardIssue": {"key": outward_key}
+        }
+        async with self.session.post(url, json=payload) as response:
+            if response.status in (200, 201, 204):
+                logger.info(f"Linked JIRA issues {inward_key} and {outward_key}")
+                return {"inward": inward_key, "outward": outward_key, "type": link_type, "status": "linked"}
+            error_text = await response.text()
+            raise RuntimeError(f"JIRA link failed ({response.status}): {error_text}")

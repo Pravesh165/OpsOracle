@@ -685,9 +685,13 @@ tests/test_dashboard_bridge.py::test_postmortems_list_is_list
 
 ---
 
-## Phase 8 — Optional Integrations (Jira Write + Audit Trail)
+## Phase 8 — Integrations (Jira Write + Audit Trail) — [COMPLETED]
 
-**Objective:** Auto-create Jira tickets from incidents. Structured audit log for all agent actions.
+**Status:** Completed.
+- Jira write automation implemented with simulation and live REST v2 support.
+- Structured JSONL audit logging implemented with automatic secret masking and querying tool.
+- P1 triage automatically triggers Jira incident ticket generation.
+- Root agent registers all Phase 8 tools.
 
 ### Priority 8a: Jira Write
 

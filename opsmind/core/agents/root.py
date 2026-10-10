@@ -59,6 +59,10 @@ from opsmind.tools import (
     ingest_postmortem,
     mark_resolution_helpful,
     get_knowledge_stats,
+    create_jira_ticket,
+    add_jira_comment,
+    transition_jira_issue,
+    list_audit_events,
 )
 
 # Root Agent - Entry point with enhanced Jira capabilities
@@ -243,6 +247,12 @@ root = Agent(
         generate_postmortem_content, 
         save_postmortem, 
         list_postmortem_files,
+        # Jira Write Tools
+        create_jira_ticket,
+        add_jira_comment,
+        transition_jira_issue,
+        # Audit Tools
+        list_audit_events,
         # Search Tools
         search_incidents,
         correlate_incident_with_jira,

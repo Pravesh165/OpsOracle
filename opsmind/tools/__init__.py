@@ -16,6 +16,8 @@ from .runbooks import search_runbooks, get_runbook_steps, execute_runbook_step
 from .verification import verify_resolution, run_health_check
 from .triage import close_incident, reopen_incident
 from .learning import ingest_postmortem, mark_resolution_helpful, get_knowledge_stats
+from .jira_write import create_jira_ticket, add_jira_comment, transition_jira_issue
+from .audit_tools import list_audit_events
 # Context tools moved to context module
 # Guardrail tools
 from .guardrail import with_guardrail, check_guardrails_health, initialize_guardrails
@@ -59,8 +61,14 @@ __all__ = [
     'ingest_postmortem',
     'mark_resolution_helpful',
     'get_knowledge_stats',
+    # Jira Write Tools
+    'create_jira_ticket',
+    'add_jira_comment',
+    'transition_jira_issue',
+    # Audit Tools
+    'list_audit_events',
     # Guardrail Tools
     'with_guardrail',
     'check_guardrails_health',
     'initialize_guardrails',
-] 
+]

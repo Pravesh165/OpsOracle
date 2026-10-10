@@ -44,6 +44,14 @@ _cfg.JIRA_ISSUES_PATH = os.path.join(_ROOT, "opsmind", "data", "datasets", "jira
 _cfg.JIRA_COMMENTS_PATH = os.path.join(_ROOT, "opsmind", "data", "datasets", "jira", "comments.csv")
 _cfg.JIRA_CHANGELOG_PATH = os.path.join(_ROOT, "opsmind", "data", "datasets", "jira", "changelog.csv")
 _cfg.JIRA_ISSUELINKS_PATH = os.path.join(_ROOT, "opsmind", "data", "datasets", "jira", "issuelinks.csv")
+_cfg.get_jira_config = lambda: {
+    "base_url": "",
+    "username": "",
+    "api_token": "",
+    "project_keys": ["OPS"],
+    "enabled": False,
+}
+_cfg.get_gcp_config = lambda: {}
 sys.modules["opsmind.config"] = _cfg
 
 # opsmind.utils stub
