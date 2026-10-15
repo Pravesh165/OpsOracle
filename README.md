@@ -1,10 +1,10 @@
-# OpsMind - SRE/DevOps Knowledge Repository & Incident Management Assistant
+# OpsOracle - SRE/DevOps Knowledge Repository & Incident Management Assistant
 
-OpsMind is an AI-powered SRE/DevOps knowledge repository and incident management system built with Google's Agent Development Kit (ADK). It serves as a comprehensive knowledge base that can answer any DevOps/SRE question using historical data from incidents, JIRA issues, comments, and changelog. When the knowledge base doesn't have sufficient information, it automatically falls back to web search for current information.
+OpsOracle is an AI-powered SRE/DevOps knowledge repository and incident management system built with Google's Agent Development Kit (ADK). It serves as a comprehensive knowledge base that can answer any DevOps/SRE question using historical data from incidents, JIRA issues, comments, and changelog. When the knowledge base doesn't have sufficient information, it automatically falls back to web search for current information.
 
 ## 🏗️ Architecture
 
-OpsMind uses a **multi-agent system** with integrated safety guardrails:
+OpsOracle uses a **multi-agent system** with integrated safety guardrails:
 
 1. **Root Agent** - SRE/DevOps knowledge repository and main user interface
 2. **Knowledge Repository Tools** - Answer questions using comprehensive historical data
@@ -16,7 +16,7 @@ OpsMind uses a **multi-agent system** with integrated safety guardrails:
 
 ## 🛡️ Safety & Security Features
 
-OpsMind includes a streamlined safety framework with decorator-based guardrails:
+OpsOracle includes a streamlined safety framework with decorator-based guardrails:
 
 - **@with_guardrail Decorator**: Applied to all user-facing functions for input validation
 - **Content Filtering**: UI content escaping and input sanitization
