@@ -16,7 +16,7 @@ OpsOracle uses a **multi-agent system** with integrated safety guardrails:
 
 ## 🛡️ Safety & Security Features
 
-OpsOracle includes a streamlined safety framework with decorator-based guardrails:
+OpsOracle includes a streamlined safety framework with decorator-based guardrails:-
 
 - **@with_guardrail Decorator**: Applied to all user-facing functions for input validation
 - **Content Filtering**: UI content escaping and input sanitization
