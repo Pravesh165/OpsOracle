@@ -116,7 +116,7 @@ python -c "from opsmind.config import validate_config; validate_config()"
 
 ## 📊 Data Sources & Analytics
 
-OpsMind leverages multiple data sources for comprehensive incident analysis with robust data loading:
+OpsOracle leverages multiple data sources for comprehensive incident analysis with robust data loading:
 
 ### Static Data Sources (CSV)
 
@@ -167,7 +167,7 @@ OpsMind leverages multiple data sources for comprehensive incident analysis with
 
 ## 🧠 Intelligent Knowledge System
 
-OpsMind operates as a comprehensive knowledge repository with intelligent fallback:
+OpsOracle operates as a comprehensive knowledge repository with intelligent fallback:
 
 ### **Knowledge Base First**
 1. **Question Analysis**: Extracts key DevOps/SRE terms from your question
@@ -202,7 +202,7 @@ User: "What's new in Kubernetes 1.29 networking?"
 
 ## 💬 Sample Prompts
 
-Once OpsMind is running, try these prompts:
+Once OpsOracle is running, try these prompts:
 
 ### Knowledge Repository Queries
 ```
@@ -395,7 +395,7 @@ asyncio.run(test_search())
 
 ## 📋 Sample Output
 
-OpsMind generates comprehensive postmortem documents:
+OpsOracle generates comprehensive postmortem documents:
 
 ```markdown
 # Incident Postmortem: INC0000045
@@ -494,7 +494,7 @@ The Jira connector automatically fetches:
 
 ## 🚧 Current Status
 
-OpsMind is production-ready with these capabilities:
+OpsOracle is production-ready with these capabilities:
 
 - ✅ **Multi-agent Architecture** - Specialized agents for different tasks
 - ✅ **Robust Data Loading** - Handles malformed CSV files with multiple parsing strategies
@@ -510,7 +510,7 @@ OpsMind is production-ready with these capabilities:
 
 ## 🤝 Contributing
 
-To extend OpsMind:
+To extend OpsOracle:
 
 1. **Add Data Sources**: Implement new connectors in `data/connectors/`
 2. **Create Agents**: Add specialized agents in `core/agents/`
@@ -528,4 +528,4 @@ To extend OpsMind:
 
 ---
 
-**OpsMind** - *From Incident to Insight, Autonomously* 🧠⚡ 
+**OpsOracle** - *From Incident to Insight, Autonomously* 🧠⚡ 
