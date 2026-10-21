@@ -6,8 +6,13 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from pathlib import Path
-from google.cloud import storage
-from google.cloud.exceptions import NotFound, GoogleCloudError
+try:
+    from google.cloud import storage
+    from google.cloud.exceptions import NotFound, GoogleCloudError
+except ImportError:
+    storage = None  # type: ignore
+    class NotFound(Exception): pass  # type: ignore
+    class GoogleCloudError(Exception): pass  # type: ignore
 from opsmind.config import (
     GCP_BUCKET_NAME, 
     GCP_PROJECT_ID, 
@@ -17,8 +22,10 @@ from opsmind.config import (
     logger
 )
 
-def get_storage_client() -> Optional[storage.Client]:
+def get_storage_client() -> Optional[Any]:
     """Get authenticated GCP Storage client"""
+    if storage is None:
+        return None
     try:
         if GCP_PROJECT_ID:
             client = storage.Client(project=GCP_PROJECT_ID)
@@ -29,6 +36,7 @@ def get_storage_client() -> Optional[storage.Client]:
     except Exception as e:
         logger.error(f"Failed to create GCP Storage client: {e}")
         return None
+
 
 def upload_file_to_gcp(
     file_content: str,

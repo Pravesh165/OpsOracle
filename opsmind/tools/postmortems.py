@@ -201,10 +201,11 @@ async def save_postmortem(
             )
             
             if upload_result["status"] == "success":
-                # Generate download link
+                # Generate download link using configured expiration
+                exp_hours = GCP_FILE_EXPIRATION_DAYS * 24 if GCP_FILE_EXPIRATION_DAYS else 24
                 download_result = generate_download_link(
                     blob_path=upload_result["blob_path"],
-                    expiration_hours=24
+                    expiration_hours=exp_hours
                 )
                 
                 if download_result["status"] == "success":
