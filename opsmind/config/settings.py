@@ -4,10 +4,12 @@ Configuration settings for OpsMind
 import os
 import logging
 from pathlib import Path
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    def load_dotenv():
+        pass
 
 # Model configuration
 MODEL_NAME = os.getenv("MODEL", "gemini-2.0-flash-001")
