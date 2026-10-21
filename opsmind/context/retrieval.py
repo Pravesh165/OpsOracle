@@ -67,11 +67,11 @@ async def get_incident_context(
             for _, row in comments_df.head(50).iterrows():  # Limit comments
                 context_entry = {
                     "type": "jira_comment",
-                    "issue_key": safe_get(row, "issue_key"),
-                    "author": safe_get(row, "author.displayName"),
-                    "body": safe_get(row, "body"),
-                    "created": safe_get(row, "created"),
-                    "updated": safe_get(row, "updated")
+                    "issue_key": safe_get(row, "key") or safe_get(row, "issue_key"),
+                    "author": safe_get(row, "comment.author") or safe_get(row, "author.displayName") or safe_get(row, "author"),
+                    "body": safe_get(row, "comment.body") or safe_get(row, "body"),
+                    "created": safe_get(row, "comment.created") or safe_get(row, "created"),
+                    "updated": safe_get(row, "comment.updated") or safe_get(row, "updated")
                 }
                 jira_context.append(context_entry)
 
@@ -80,8 +80,8 @@ async def get_incident_context(
             for _, row in changelog_df.head(50).iterrows():  # Limit changelog
                 context_entry = {
                     "type": "jira_changelog",
-                    "issue_key": safe_get(row, "issue_key"),
-                    "author": safe_get(row, "author.displayName"),
+                    "issue_key": safe_get(row, "key") or safe_get(row, "issue_key"),
+                    "author": safe_get(row, "author") or safe_get(row, "author.displayName"),
                     "field": safe_get(row, "field"),
                     "from_string": safe_get(row, "fromString"),
                     "to_string": safe_get(row, "toString"),
@@ -94,10 +94,10 @@ async def get_incident_context(
             for _, row in issuelinks_df.head(50).iterrows():  # Limit links
                 context_entry = {
                     "type": "jira_link",
-                    "source_key": safe_get(row, "sourceIssueKey"),
-                    "target_key": safe_get(row, "targetIssueKey"),
-                    "link_type": safe_get(row, "linkType.name"),
-                    "direction": safe_get(row, "linkType.inward")
+                    "source_key": safe_get(row, "inwardIssue.key") or safe_get(row, "sourceIssueKey"),
+                    "target_key": safe_get(row, "outwardIssue.key") or safe_get(row, "targetIssueKey"),
+                    "link_type": safe_get(row, "type.name") or safe_get(row, "linkType.name"),
+                    "direction": safe_get(row, "type.inward") or safe_get(row, "linkType.inward")
                 }
                 jira_context.append(context_entry)
 
