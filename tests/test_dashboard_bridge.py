@@ -68,8 +68,8 @@ _guardrail.with_guardrail = lambda fn: fn
 _tools_pkg = _types.ModuleType("opsmind.tools")
 _tools_pkg.__path__ = [os.path.join(_ROOT, "opsmind", "tools")]
 _tools_pkg.__package__ = "opsmind.tools"
-sys.modules["opsmind.tools"] = _tools_pkg
-sys.modules["opsmind.tools.guardrail"] = _guardrail
+sys.modules.setdefault("opsmind.tools", _tools_pkg)
+sys.modules.setdefault("opsmind.tools.guardrail", _guardrail)
 
 # ---------------------------------------------------------------------------
 # Now import data_bridge (no Streamlit needed)
