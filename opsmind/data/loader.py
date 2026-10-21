@@ -264,14 +264,14 @@ def search_jira_issues(
         # Apply filters
         filtered_df = issues_df.copy()
         
-        # Search term filter - search in summary and description
-        # Note: CSV parsing shifted columns, so 'key' contains summaries, 'id' contains actual JIRA keys
+        # Search term filter - search in summary, key, and description
         if search_term:
-            search_mask = (
-                filtered_df['key'].str.contains(search_term, case=False, na=False) |
-                filtered_df['description'].str.contains(search_term, case=False, na=False)
-            )
-            filtered_df = filtered_df[search_mask]
+            cols_to_check = [col for col in ['summary', 'key', 'description'] if col in filtered_df.columns]
+            if cols_to_check:
+                search_mask = filtered_df[cols_to_check[0]].str.contains(search_term, case=False, na=False)
+                for col in cols_to_check[1:]:
+                    search_mask = search_mask | filtered_df[col].str.contains(search_term, case=False, na=False)
+                filtered_df = filtered_df[search_mask]
         
         # Status filter
         if status:

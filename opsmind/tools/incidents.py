@@ -169,7 +169,7 @@ async def correlate_incident_with_jira(
                 comments = search_jira_comments(search_term=term, limit=10)
                 related_comments.extend(comments)
                 
-                changelog = search_jira_changelog(limit=10)
+                changelog = search_jira_changelog(search_term=term, limit=10)
                 related_changelog.extend(changelog)
         
         # Remove duplicates

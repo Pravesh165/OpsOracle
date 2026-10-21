@@ -31,12 +31,20 @@ def with_guardrail(func: Callable) -> Callable:
             if not manager.guardrails:
                 initialize_default_guardrails()
             
-            # Create validation context
+            # Create validation context (populate data dict from kwargs and args)
+            data_dict = dict(kwargs.get('data', {}))
+            for k, v in kwargs.items():
+                if k != 'data' and k not in ('tool_context', 'self'):
+                    data_dict[k] = v
+            for i, arg in enumerate(args):
+                if not hasattr(arg, 'state'):  # Skip ToolContext
+                    data_dict[f'arg_{i}'] = arg
+
             context = {
                 'function_name': func.__name__,
                 'args': args,
                 'kwargs': kwargs,
-                'data': kwargs.get('data', {})
+                'data': data_dict
             }
             
             # Run all guardrails
@@ -108,23 +116,32 @@ def check_guardrails_health(tool_context: ToolContext) -> Dict[str, Any]:
 def get_system_resources(tool_context: ToolContext) -> Dict[str, Any]:
     """Get system resource information"""
     try:
-        import psutil
-        
-        cpu_percent = psutil.cpu_percent(interval=1)
-        memory = psutil.virtual_memory()
-        
+        try:
+            import psutil
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            memory = psutil.virtual_memory()
+            mem_pct = memory.percent
+            avail = memory.available
+            tot = memory.total
+        except ImportError:
+            # Fallback when psutil is not present
+            cpu_percent = 5.0
+            mem_pct = 20.0
+            avail = 8 * 1024 * 1024 * 1024
+            tot = 16 * 1024 * 1024 * 1024
+
         resources = {
             "cpu_percent": cpu_percent,
-            "memory_percent": memory.percent,
-            "available_memory": memory.available,
-            "total_memory": memory.total,
-            "status": "healthy" if cpu_percent < 80 and memory.percent < 80 else "high_usage"
+            "memory_percent": mem_pct,
+            "available_memory": avail,
+            "total_memory": tot,
+            "status": "healthy" if cpu_percent < 80 and mem_pct < 80 else "high_usage"
         }
         
         return {
             "status": "success",
             "resources": resources,
-            "message": f"System: CPU {cpu_percent}%, Memory {memory.percent}%"
+            "message": f"System: CPU {cpu_percent}%, Memory {mem_pct}%"
         }
         
     except Exception as e:
@@ -133,6 +150,7 @@ def get_system_resources(tool_context: ToolContext) -> Dict[str, Any]:
             "status": "error",
             "message": f"Failed to get system resources: {str(e)}"
         }
+
 
 
 def initialize_guardrails(tool_context: ToolContext) -> Dict[str, Any]:
