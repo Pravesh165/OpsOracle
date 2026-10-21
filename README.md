@@ -1,10 +1,10 @@
-# OpsMind - SRE/DevOps Knowledge Repository & Incident Management Assistant
+# OpsOracle - SRE/DevOps Knowledge Repository & Incident Management Assistant
 
-OpsMind is an AI-powered SRE/DevOps knowledge repository and incident management system built with Google's Agent Development Kit (ADK). It serves as a comprehensive knowledge base that can answer any DevOps/SRE question using historical data from incidents, JIRA issues, comments, and changelog. When the knowledge base doesn't have sufficient information, it automatically falls back to web search for current information.
+OpsOracle is an AI-powered SRE/DevOps knowledge repository and incident management system built with Google's Agent Development Kit (ADK). It serves as a comprehensive knowledge base that can answer any DevOps/SRE question using historical data from incidents, JIRA issues, comments, and changelog. When the knowledge base doesn't have sufficient information, it automatically falls back to web search for current information.
 
 ## 🏗️ Architecture
 
-OpsMind uses a **multi-agent system** with integrated safety guardrails:
+OpsOracle uses a **multi-agent system** with integrated safety guardrails:
 
 1. **Root Agent** - SRE/DevOps knowledge repository and main user interface
 2. **Knowledge Repository Tools** - Answer questions using comprehensive historical data
@@ -16,7 +16,7 @@ OpsMind uses a **multi-agent system** with integrated safety guardrails:
 
 ## 🛡️ Safety & Security Features
 
-OpsMind includes a streamlined safety framework with decorator-based guardrails:
+OpsOracle includes a streamlined safety framework with decorator-based guardrails:-
 
 - **@with_guardrail Decorator**: Applied to all user-facing functions for input validation
 - **Content Filtering**: UI content escaping and input sanitization
@@ -116,7 +116,7 @@ python -c "from opsmind.config import validate_config; validate_config()"
 
 ## 📊 Data Sources & Analytics
 
-OpsMind leverages multiple data sources for comprehensive incident analysis with robust data loading:
+OpsOracle leverages multiple data sources for comprehensive incident analysis with robust data loading:
 
 ### Static Data Sources (CSV)
 
@@ -167,7 +167,7 @@ OpsMind leverages multiple data sources for comprehensive incident analysis with
 
 ## 🧠 Intelligent Knowledge System
 
-OpsMind operates as a comprehensive knowledge repository with intelligent fallback:
+OpsOracle operates as a comprehensive knowledge repository with intelligent fallback:
 
 ### **Knowledge Base First**
 1. **Question Analysis**: Extracts key DevOps/SRE terms from your question
@@ -202,7 +202,7 @@ User: "What's new in Kubernetes 1.29 networking?"
 
 ## 💬 Sample Prompts
 
-Once OpsMind is running, try these prompts:
+Once OpsOracle is running, try these prompts:
 
 ### Knowledge Repository Queries
 ```
@@ -395,7 +395,7 @@ asyncio.run(test_search())
 
 ## 📋 Sample Output
 
-OpsMind generates comprehensive postmortem documents:
+OpsOracle generates comprehensive postmortem documents:
 
 ```markdown
 # Incident Postmortem: INC0000045
@@ -494,7 +494,7 @@ The Jira connector automatically fetches:
 
 ## 🚧 Current Status
 
-OpsMind is production-ready with these capabilities:
+OpsOracle is production-ready with these capabilities:
 
 - ✅ **Multi-agent Architecture** - Specialized agents for different tasks
 - ✅ **Robust Data Loading** - Handles malformed CSV files with multiple parsing strategies
@@ -510,7 +510,7 @@ OpsMind is production-ready with these capabilities:
 
 ## 🤝 Contributing
 
-To extend OpsMind:
+To extend OpsOracle:
 
 1. **Add Data Sources**: Implement new connectors in `data/connectors/`
 2. **Create Agents**: Add specialized agents in `core/agents/`
@@ -528,4 +528,4 @@ To extend OpsMind:
 
 ---
 
-**OpsMind** - *From Incident to Insight, Autonomously* 🧠⚡ 
+**OpsOracle** - *From Incident to Insight, Autonomously* 🧠⚡ 
